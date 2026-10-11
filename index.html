@@ -1,0 +1,2337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07121f">
+  <meta name="description" content="Spider Hero: game belajar IPAS tentang perjuangan kemerdekaan Indonesia.">
+  <title>SPIDER HERO | Jaring Perjuangan Kemerdekaan</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #07121f;
+      --night-2: #0a1a2a;
+      --panel: rgba(10, 27, 43, .82);
+      --line: rgba(157, 197, 223, .18);
+      --muted: #9cb3c5;
+      --white: #f5f8fb;
+      --red: #ed3948;
+      --red-bright: #ff5360;
+      --cyan: #61d9f2;
+      --gold: #f3ca76;
+      --green: #83e2b6;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 76% -10%, rgba(23, 72, 104, .42), transparent 44%), var(--night);
+      color: var(--white);
+      font-family: var(--font);
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .2;
+      z-index: -1;
+      background-image: linear-gradient(rgba(129, 173, 200, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(129, 173, 200, .035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+    }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+    a { color: #8be8ff; }
+    .site-header {
+      width: min(100% - 44px, 1360px);
+      min-height: 76px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      position: relative;
+      z-index: 10;
+    }
+    body[data-screen="arena"] .site-header { display: none; }
+    .site-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      background: transparent;
+      padding: 8px 0;
+      cursor: pointer;
+      text-align: left;
+    }
+    .brand-mark {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      border-radius: 50% 50% 44% 44%;
+      color: white;
+      background: linear-gradient(150deg, #ff6471 4%, #d82035 68%, #901c33);
+      border: 1px solid rgba(255,255,255,.45);
+      box-shadow: 0 0 22px rgba(237,57,72,.27);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .brand-copy { display: grid; gap: 1px; }
+    .brand-copy strong { font-size: 14px; letter-spacing: .16em; }
+    .brand-copy span { color: #8ea5b7; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .nav-actions { display: flex; align-items: center; gap: 5px; }
+    .nav-link {
+      border: 0;
+      padding: 10px 13px;
+      color: #b7c8d4;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      transition: color .2s ease, background .2s ease;
+    }
+    .nav-link:hover { color: white; background: rgba(255,255,255,.06); }
+    .nav-link.teacher-link { color: #f3cdd0; }
+    .icon-button, .button {
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .icon-button:hover, .button:hover { transform: translateY(-1px); border-color: rgba(151, 218, 244, .55); }
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      color: #d6e8f3;
+      background: rgba(10, 27, 43, .7);
+      border-radius: 12px;
+    }
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      border-radius: 12px;
+      padding: 0 19px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .button-primary {
+      border-color: rgba(255, 135, 146, .65);
+      color: white;
+      background: linear-gradient(135deg, #fb5965, #ce263b 78%);
+      box-shadow: 0 10px 32px rgba(210, 37, 57, .22), inset 0 1px 0 rgba(255,255,255,.18);
+    }
+    .button-primary:hover { box-shadow: 0 12px 38px rgba(236, 57, 72, .38); }
+    .button-secondary { color: #dcebf4; background: rgba(13, 33, 51, .78); }
+    .button-quiet { min-height: 38px; color: #b7cad7; background: transparent; border-color: transparent; padding: 0 12px; }
+    .button-small { min-height: 36px; padding: 0 12px; border-radius: 9px; font-size: 10px; }
+    .button:disabled, .icon-button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .screen { display: none; animation: view-in .42s cubic-bezier(.2,.7,.2,1) both; }
+    .screen.active { display: block; }
+    @keyframes view-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .wrap { width: min(100% - 44px, 1240px); margin: 0 auto; }
+    .hero {
+      min-height: min(760px, calc(100svh - 76px));
+      min-height: max(590px, min(760px, calc(100vh - 76px)));
+      position: relative;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    #heroCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(7,18,31,.98) 0%, rgba(7,18,31,.91) 38%, rgba(7,18,31,.36) 71%, rgba(7,18,31,.1) 100%), linear-gradient(0deg, var(--night) 0%, transparent 26%);
+    }
+    .hero-copy { width: min(690px, 62%); padding: 40px 0 64px; position: relative; z-index: 1; }
+    .eyebrow, .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: #a7c3d5;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .19em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before, .section-kicker::before { content: ""; width: 25px; height: 1px; background: var(--red-bright); }
+    .hero-wordmark {
+      margin: 19px 0 7px;
+      font-size: clamp(55px, 8.7vw, 116px);
+      line-height: .84;
+      letter-spacing: -.075em;
+      font-weight: 950;
+      text-transform: uppercase;
+      text-shadow: 0 8px 36px rgba(7,18,31,.5);
+    }
+    .hero-wordmark span { color: var(--red-bright); }
+    .hero-title {
+      max-width: 630px;
+      margin: 23px 0 13px;
+      color: #edf5fa;
+      font-size: clamp(19px, 2.2vw, 28px);
+      font-weight: 700;
+      letter-spacing: -.035em;
+      line-height: 1.24;
+    }
+    .hero-description { max-width: 475px; margin: 0; color: #adc0ce; font-size: 15px; line-height: 1.75; }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 27px; }
+    .hero-ctas .button { min-width: 160px; }
+    .home-strip {
+      width: min(100% - 44px, 1240px);
+      margin: 0 auto;
+      padding: 23px 0 31px;
+      border-top: 1px solid rgba(155, 193, 216, .13);
+      display: grid;
+      grid-template-columns: minmax(190px, 1.1fr) minmax(190px, .75fr) minmax(200px, 1fr);
+      align-items: center;
+      gap: 24px;
+    }
+    .strip-field { display: grid; gap: 7px; }
+    .strip-field label, .strip-label { color: #7f9aad; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .line-input {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid rgba(162, 198, 219, .36);
+      border-radius: 0;
+      padding: 7px 1px 9px;
+      color: white;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+    }
+    .line-input:focus { border-color: var(--cyan); }
+    .home-strip-stats { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .home-stat { display: grid; gap: 5px; }
+    .home-stat strong { font-size: 19px; letter-spacing: -.04em; }
+    .home-stat span { color: #8199ab; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .camera-status { display: inline-flex; align-items: center; gap: 8px; color: #a9bdcb; font-size: 11px; }
+    .status-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #6c8191; box-shadow: 0 0 0 4px rgba(108,129,145,.12); }
+    .status-dot.live { background: #79e0ad; box-shadow: 0 0 0 4px rgba(121,224,173,.13); }
+    .status-dot.warn { background: #f1be66; box-shadow: 0 0 0 4px rgba(241,190,102,.13); }
+    .page-section { width: min(100% - 44px, 1180px); margin: 0 auto; padding: 33px 0 70px; }
+    .page-topline { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 10px 0 32px; }
+    .page-title { margin: 9px 0 8px; font-size: clamp(29px, 4vw, 44px); letter-spacing: -.055em; line-height: 1.06; }
+    .page-intro { max-width: 680px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.72; }
+    .guide-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, .85fr); gap: 38px; align-items: start; }
+    .interaction-panel {
+      border: 1px solid rgba(136, 185, 214, .22);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(15, 38, 58, .82), rgba(7, 22, 37, .94));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 18px 46px rgba(0,0,0,.18);
+    }
+    .camera-panel { padding: 15px; }
+    .video-shell {
+      position: relative;
+      min-height: 235px;
+      overflow: hidden;
+      border: 1px solid rgba(112, 169, 198, .18);
+      border-radius: 11px;
+      background: radial-gradient(circle at 50% 55%, rgba(32,94,127,.25), transparent 56%), #06101a;
+    }
+    .video-shell video { width: 100%; height: 235px; display: block; object-fit: cover; transform: scaleX(-1); opacity: .9; }
+    .video-placeholder { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; color: #7e98aa; text-align: center; font-size: 12px; line-height: 1.65; pointer-events: none; }
+    .video-live .video-placeholder { display: none; }
+    .video-corner { position: absolute; top: 11px; left: 11px; display: flex; align-items: center; gap: 7px; padding: 6px 9px; border-radius: 7px; color: #e3edf4; background: rgba(4, 14, 23, .72); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .panel-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 13px; color: #8da4b5; font-size: 10px; }
+    .guide-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .status-list { display: grid; margin: 17px 0 0; border-top: 1px solid var(--line); }
+    .status-row { display: grid; grid-template-columns: 122px minmax(0,1fr); gap: 12px; padding: 11px 1px; border-bottom: 1px solid rgba(146, 183, 205, .12); font-size: 11px; }
+    .status-row span:first-child { color: #819bad; }
+    .status-row strong { color: #d9e8f1; font-weight: 600; }
+    .gesture-list { display: grid; gap: 17px; margin-top: 23px; }
+    .gesture-row { display: grid; grid-template-columns: 42px 1fr; gap: 13px; align-items: start; }
+    .gesture-symbol { width: 39px; height: 39px; display: grid; place-items: center; border: 1px solid rgba(119, 204, 235, .25); border-radius: 12px; color: #94e4f8; background: rgba(76, 168, 203, .08); font-size: 12px; font-weight: 800; }
+    .gesture-row h3 { margin: 1px 0 4px; font-size: 13px; }
+    .gesture-row p { margin: 0; color: #91a8b8; font-size: 11px; line-height: 1.6; }
+    .note-line { margin-top: 18px; color: #8ba3b4; font-size: 11px; line-height: 1.65; }
+    .lesson-list { margin-top: 32px; border-top: 1px solid var(--line); }
+    .lesson-row { border-bottom: 1px solid var(--line); }
+    .lesson-row summary { padding: 19px 2px; display: flex; align-items: center; gap: 17px; color: #eaf2f7; cursor: pointer; list-style: none; font-size: 15px; font-weight: 700; }
+    .lesson-row summary::-webkit-details-marker { display: none; }
+    .lesson-row summary::after { content: "+"; margin-left: auto; color: #89cce2; font-size: 20px; font-weight: 400; }
+    .lesson-row[open] summary::after { content: "-"; }
+    .lesson-number { color: var(--red-bright); font-size: 10px; letter-spacing: .12em; }
+    .lesson-body { max-width: 900px; padding: 0 26px 22px 49px; color: #a7bac7; font-size: 13px; line-height: 1.85; }
+    .lesson-body p { margin: 0 0 9px; }
+    .source-list { margin: 31px 0 0; padding-top: 17px; border-top: 1px solid var(--line); color: #879eaf; font-size: 11px; line-height: 1.9; }
+    .source-list a { display: inline-block; margin: 2px 13px 2px 0; }
+    .arena-wrap { width: min(100% - 36px, 1320px); margin: 0 auto; padding: 18px 0 36px; }
+    .arena-topline { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+    .arena-brand { display: flex; align-items: center; gap: 11px; }
+    .arena-brand strong { font-size: 12px; letter-spacing: .15em; }
+    .arena-brand span { display: block; margin-top: 3px; color: #7893a7; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .arena-utility { display: flex; align-items: center; gap: 8px; }
+    .arena-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 18px 0 13px; }
+    .mission-label { color: #f1959e; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .arena-heading h1 { margin: 5px 0 4px; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.05em; }
+    .arena-heading p { margin: 0; color: #93aaba; font-size: 12px; }
+    .arena-hud { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; padding: 12px 0; }
+    .hud-item { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(137, 179, 203, .17); padding: 0 1px 9px; }
+    .hud-item span { color: #829bad; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .hud-item strong { color: #edf5fa; font-size: 15px; font-variant-numeric: tabular-nums; }
+    .hud-energy { grid-column: span 1; align-items: start; flex-direction: column; gap: 7px; }
+    .energy-track { width: 100%; height: 4px; overflow: hidden; border-radius: 99px; background: rgba(117, 155, 177, .2); }
+    .energy-fill { height: 100%; width: 100%; border-radius: inherit; background: linear-gradient(90deg, #ed4050, #80dff1); transition: width .2s ease; }
+    .question-panel { padding: 13px 17px 14px; border-left: 2px solid var(--red); background: linear-gradient(90deg, rgba(162, 41, 57, .13), rgba(17, 37, 55, .43)); }
+    .question-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #a0b5c3; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .question-text { margin: 8px 0 0; max-width: 1030px; color: #f5f9fc; font-size: clamp(16px, 1.9vw, 23px); font-weight: 750; letter-spacing: -.025em; line-height: 1.42; }
+    .arena-stage { position: relative; margin-top: 11px; border: 1px solid rgba(119, 174, 201, .27); border-radius: 14px; overflow: hidden; background: #061321; box-shadow: 0 22px 60px rgba(0,0,0,.24); }
+    #arenaCanvas { width: 100%; height: clamp(390px, 49vh, 540px); display: block; cursor: crosshair; touch-action: none; }
+    .arena-bottom { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; margin-top: 12px; }
+    .arena-hand-readout { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; color: #91a9b9; font-size: 10px; }
+    .arena-hand-readout strong { color: #dbeaf2; font-weight: 650; }
+    .readout-pair { display: inline-flex; align-items: center; gap: 6px; }
+    .mini-camera { width: 132px; height: 82px; position: relative; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(121, 186, 215, .25); border-radius: 9px; background: #071421; }
+    .mini-camera video { width: 100%; height: 100%; display: block; object-fit: cover; transform: scaleX(-1); opacity: .84; }
+    .mini-camera .video-placeholder { font-size: 8px; padding: 7px; }
+    .mini-camera .video-corner { top: 5px; left: 5px; padding: 4px 6px; font-size: 7px; }
+    .arena-bottom-right { display: flex; align-items: center; justify-content: end; gap: 8px; flex-wrap: wrap; }
+    .arena-feedback { margin: 11px 0 0; padding: 13px 16px; border: 1px solid rgba(133, 189, 214, .28); border-left: 3px solid var(--cyan); border-radius: 12px; background: linear-gradient(180deg, rgba(20, 54, 78, .96), rgba(10, 29, 46, .96)); box-shadow: 0 12px 32px rgba(0,0,0,.24); animation: feedback-pop .25s ease both; }
+    .arena-feedback .feedback-title { font-size: clamp(15px, 1.7vw, 19px); }
+    .arena-feedback[hidden] { display: none; }
+    @keyframes feedback-pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .feedback-title { margin: 0 0 5px; font-size: 14px; font-weight: 850; letter-spacing: .025em; }
+    .feedback-title.good { color: #8ce6b7; }
+    .feedback-title.bad { color: #ffb7ba; }
+    .feedback-copy { margin: 0; color: #b3c5d1; font-size: 12px; line-height: 1.65; }
+    .feedback-source { margin: 6px 0 0; color: #778f9f; font-size: 9px; }
+    .feedback-actions { display: flex; justify-content: end; gap: 8px; margin-top: 11px; }
+    .keyboard-hint { color: #70899b; font-size: 9px; text-align: right; }
+    .result-hero { max-width: 850px; padding: 75px 0 34px; }
+    .result-hero h1 { margin: 8px 0; font-size: clamp(35px, 6vw, 68px); letter-spacing: -.065em; line-height: .98; }
+    .result-hero p { max-width: 620px; color: #a5b8c5; line-height: 1.7; }
+    .result-rank { color: var(--gold); font-size: 10px; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    .result-score { display: flex; align-items: baseline; gap: 12px; margin: 21px 0; }
+    .result-score strong { color: white; font-size: clamp(46px, 7vw, 78px); letter-spacing: -.07em; }
+    .result-score span { color: #8ea6b7; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
+    .result-summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; }
+    .result-stat { display: grid; gap: 6px; }
+    .result-stat strong { font-size: 19px; }
+    .result-stat span { color: #8098aa; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .review-block { max-width: 750px; margin-top: 25px; }
+    .review-block h2 { margin: 0 0 9px; font-size: 14px; }
+    .review-block p, .review-block li { color: #a3b7c4; font-size: 12px; line-height: 1.75; }
+    .review-block ul { padding-left: 18px; }
+    .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 27px 0 52px; }
+    .teacher-grid { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0,1.3fr); gap: 25px; align-items: start; }
+    .teacher-panel { padding: 20px; }
+    .teacher-panel h2 { margin: 0 0 5px; font-size: 16px; }
+    .teacher-panel > p { margin: 0 0 18px; color: #8da6b6; font-size: 11px; line-height: 1.65; }
+    .form-grid { display: grid; gap: 12px; }
+    .form-grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #91a9b8; font-size: 9px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .field input, .field select, .field textarea, .modal-field input, .modal-field select {
+      width: 100%;
+      min-height: 39px;
+      border: 1px solid rgba(136, 179, 201, .23);
+      border-radius: 9px;
+      padding: 9px 10px;
+      color: #edf6fb;
+      background: rgba(4, 16, 27, .62);
+      font-size: 12px;
+    }
+    .field textarea { min-height: 75px; resize: vertical; line-height: 1.5; }
+    .field select, .modal-field select { cursor: pointer; }
+    .field input[type="range"] { padding: 0; accent-color: var(--red-bright); }
+    .field input[type="checkbox"] { width: 17px; min-height: auto; accent-color: var(--red); }
+    .field-check { display: flex; align-items: center; gap: 9px; color: #bbcad4; font-size: 11px; }
+    .editor-actions, .teacher-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .teacher-list { display: grid; gap: 8px; max-height: 630px; overflow: auto; padding-right: 3px; }
+    .question-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; padding: 12px; border: 1px solid rgba(133, 177, 200, .16); border-radius: 11px; background: rgba(4, 17, 28, .45); }
+    .question-row h3 { margin: 4px 0; color: #eaf3f8; font-size: 12px; line-height: 1.5; }
+    .question-row p { margin: 0; color: #7e98a9; font-size: 9px; line-height: 1.5; }
+    .question-row-actions { display: flex; align-items: center; gap: 5px; }
+    .teacher-settings { margin-top: 29px; padding-top: 21px; border-top: 1px solid var(--line); }
+    .teacher-settings h2 { margin: 0 0 5px; }
+    .storage-note { margin: 13px 0 0; color: #778f9f; font-size: 10px; line-height: 1.6; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(2, 8, 14, .76); backdrop-filter: blur(10px); }
+    .modal-backdrop.open { display: flex; animation: fade-in .18s ease both; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .modal-box { width: min(100%, 490px); max-height: min(92vh, 760px); overflow: auto; padding: 23px; border: 1px solid rgba(139, 195, 221, .3); border-radius: 17px; background: linear-gradient(145deg, #10283c, #071522); box-shadow: 0 30px 90px rgba(0,0,0,.55); }
+    .modal-head { display: flex; justify-content: space-between; align-items: start; gap: 14px; margin-bottom: 17px; }
+    .modal-head h2 { margin: 0 0 5px; font-size: 19px; letter-spacing: -.03em; }
+    .modal-head p { margin: 0; color: #8da6b6; font-size: 11px; line-height: 1.6; }
+    .modal-field { display: grid; gap: 7px; margin: 13px 0; }
+    .modal-field label { color: #93aabb; font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .modal-actions { display: flex; justify-content: end; gap: 8px; margin-top: 19px; }
+    .modal-warning { color: #829aab; font-size: 10px; line-height: 1.65; }
+    .pause-overlay { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(2, 8, 14, .78); backdrop-filter: blur(8px); }
+    .pause-overlay.open { display: flex; }
+    .pause-box { width: min(100%, 390px); padding: 28px; text-align: center; border: 1px solid rgba(125, 195, 222, .31); border-radius: 18px; background: #0c2031; box-shadow: 0 25px 80px rgba(0,0,0,.48); }
+    .pause-box h2 { margin: 0; font-size: 27px; letter-spacing: -.04em; }
+    .pause-box p { color: #9bb0bf; font-size: 12px; line-height: 1.7; }
+    .pause-actions { display: grid; gap: 8px; margin-top: 18px; }
+    .toast { position: fixed; z-index: 120; right: 20px; bottom: 20px; max-width: min(430px, calc(100vw - 40px)); padding: 13px 16px; border: 1px solid rgba(128, 205, 233, .32); border-radius: 11px; color: #e4f2f8; background: rgba(9, 31, 47, .97); box-shadow: 0 15px 42px rgba(0,0,0,.35); font-size: 12px; line-height: 1.55; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .footer-note { padding: 20px 0 30px; border-top: 1px solid rgba(146,183,205,.1); color: #667f91; font-size: 9px; line-height: 1.7; text-align: center; }
+    @media (max-width: 800px) {
+      .guide-grid { grid-template-columns: 1fr; gap: 26px; }
+      .guide-grid > :first-child { order: 1; }
+      .guide-grid > :last-child { order: 0; }
+      .teacher-grid { grid-template-columns: 1fr; }
+      .hero-copy { width: min(690px, 75%); }
+      .arena-hud { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .home-strip { grid-template-columns: 1fr 1fr; }
+      .home-strip-stats { grid-column: 1 / -1; }
+    }
+    @media (max-width: 620px) {
+      .site-header { width: min(100% - 28px, 1360px); min-height: 64px; }
+      .nav-actions { gap: 0; }
+      .nav-link { padding: 9px 7px; font-size: 10px; }
+      .nav-link.hide-small { display: none; }
+      .brand-copy span { display: none; }
+      .wrap, .page-section { width: min(100% - 30px, 1180px); }
+      .hero { min-height: 640px; min-height: max(600px, calc(100svh - 64px)); }
+      .hero::before { background: linear-gradient(90deg, rgba(7,18,31,.97) 0%, rgba(7,18,31,.86) 60%, rgba(7,18,31,.45) 100%), linear-gradient(0deg, var(--night) 0%, transparent 35%); }
+      .hero-copy { width: 100%; padding: 35px 0 68px; }
+      .hero-wordmark { font-size: clamp(58px, 17vw, 88px); }
+      .hero-description { max-width: 360px; font-size: 13px; }
+      .hero-ctas { max-width: 360px; }
+      .hero-ctas .button { flex: 1 1 45%; min-width: 145px; }
+      .home-strip { width: min(100% - 30px, 1240px); grid-template-columns: 1fr; gap: 17px; }
+      .home-strip-stats { grid-column: auto; }
+      .page-section { padding-top: 20px; }
+      .page-topline { margin-bottom: 24px; }
+      .status-row { grid-template-columns: 100px minmax(0,1fr); }
+      .arena-wrap { width: min(100% - 20px, 1320px); padding-top: 10px; }
+      .arena-heading { align-items: start; }
+      .arena-hud { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 13px; }
+      .hud-item { padding-bottom: 7px; }
+      .hud-energy { grid-column: span 2; }
+      #arenaCanvas { height: 445px; }
+      .arena-bottom { grid-template-columns: 1fr; }
+      .arena-bottom-right { justify-content: start; }
+      .mini-camera { width: 116px; height: 72px; }
+      .question-meta { font-size: 8px; }
+      .question-panel { padding: 12px; }
+      .result-summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .form-grid.two { grid-template-columns: 1fr; }
+      .teacher-panel { padding: 15px; }
+      .question-row { grid-template-columns: 1fr; }
+      .question-row-actions { justify-content: end; }
+      .keyboard-hint { text-align: left; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body data-screen="home">
+  <header class="site-header" id="siteHeader">
+    <button class="site-brand" type="button" data-go="home" aria-label="Kembali ke beranda Spider Hero">
+      <span class="brand-mark">SH</span>
+      <span class="brand-copy"><strong>SPIDER HERO</strong><span>Arsip perjuangan Indonesia</span></span>
+    </button>
+    <nav class="nav-actions" aria-label="Navigasi utama">
+      <button class="nav-link hide-small" type="button" data-go="learn">Materi</button>
+      <button class="nav-link hide-small" type="button" data-go="guide">Panduan gestur</button>
+      <button class="nav-link teacher-link" type="button" data-action="teacher-login">Mode guru</button>
+      <button class="icon-button" id="headerSettings" type="button" aria-label="Pengaturan" title="Pengaturan"><span style="font-size:9px;font-weight:800">SET</span></button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="screen-home" class="screen active" aria-labelledby="heroTitle">
+      <div class="hero">
+        <canvas id="heroCanvas" aria-hidden="true"></canvas>
+        <div class="wrap">
+          <div class="hero-copy">
+            <div class="eyebrow">IPAS KELAS VI / FASE C</div>
+            <h1 class="hero-wordmark">SPIDER <span>HERO</span></h1>
+            <h2 class="hero-title" id="heroTitle">Jaring Perjuangan Kemerdekaan Indonesia</h2>
+            <p class="hero-description">Jadilah penjaga arsip perjuangan. Bidik fakta sejarah, amankan dokumen, dan temukan kisah di balik kemerdekaan Indonesia.</p>
+            <div class="hero-ctas">
+              <button class="button button-primary" id="startMissionButton" type="button">Mulai misi <span aria-hidden="true">&#8594;</span></button>
+              <button class="button button-secondary" type="button" data-go="guide">Panduan gestur</button>
+              <button class="button button-secondary" type="button" data-go="learn">Materi sejarah</button>
+              <button class="button button-quiet" id="homeSettings" type="button">Pengaturan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="home-strip">
+        <div class="strip-field">
+          <label for="playerName">Nama penjaga arsip</label>
+          <input class="line-input" id="playerName" maxlength="24" autocomplete="name" placeholder="Tulis namamu">
+        </div>
+        <div class="home-strip-stats">
+          <div class="home-stat"><strong id="homeHighScore">0</strong><span>Skor tertinggi</span></div>
+          <div class="home-stat"><span class="camera-status"><i class="status-dot" id="homeCameraDot"></i><span id="homeCameraStatus">Webcam belum diaktifkan</span></span><span>Status kamera</span></div>
+        </div>
+        <div class="strip-field">
+          <span class="strip-label">Pilih cara bermain</span>
+          <span class="camera-status"><i class="status-dot live"></i><span>Gerakan tangan atau mouse + keyboard</span></span>
+        </div>
+      </div>
+      <div class="footer-note wrap">Sesi belajar 5-10 menit. Kamera diproses di browser dan tidak dikirim ke server.</div>
+    </section>
+
+    <section id="screen-guide" class="screen" aria-labelledby="guideTitle">
+      <div class="page-section">
+        <div class="page-topline">
+          <div><span class="section-kicker">Cara bermain</span><h1 class="page-title" id="guideTitle">Panduan gestur</h1><p class="page-intro">Arahkan telunjuk untuk membidik, lalu bentuk gestur jaring untuk menangkap kartu. Webcam hanya digunakan di perangkat ini.</p></div>
+          <button class="button button-secondary button-small" id="guideBackButton" type="button">Kembali</button>
+        </div>
+        <div class="guide-grid">
+          <div>
+            <div class="interaction-panel camera-panel">
+              <div class="video-shell" id="guideVideoShell">
+                <video id="guideVideo" playsinline muted aria-label="Pratinjau webcam untuk kalibrasi"></video>
+                <div class="video-placeholder" id="guideVideoPlaceholder">Pratinjau akan tampil setelah kamu memberi izin kamera.<br>Gunakan HTTPS atau localhost; file:// biasanya tidak diizinkan mengakses webcam.</div>
+                <div class="video-corner"><i class="status-dot" id="guideVideoDot"></i><span>Pratinjau lokal</span></div>
+              </div>
+              <div class="panel-foot"><span id="cameraPanelStatus">Kamera belum aktif</span><span id="calibrationProgress">Belum dikalibrasi</span></div>
+              <div class="guide-actions">
+                <button class="button button-primary button-small" id="enableCameraButton" type="button">Aktifkan kamera</button>
+                <button class="button button-secondary button-small" id="calibrateButton" type="button">Kalibrasi 4 detik</button>
+                <button class="button button-quiet button-small" id="retryCameraButton" type="button">Coba lagi</button>
+                <button class="button button-quiet button-small" id="stopCameraButton" type="button">Matikan kamera</button>
+              </div>
+            </div>
+            <div class="status-list" aria-live="polite">
+              <div class="status-row"><span>Kamera</span><strong id="guideCameraState">Belum aktif</strong></div>
+              <div class="status-row"><span>MediaPipe</span><strong id="guideModelState">Menunggu izin kamera</strong></div>
+              <div class="status-row"><span>Tangan</span><strong id="guideHandState">Belum terdeteksi</strong></div>
+              <div class="status-row"><span>Gestur</span><strong id="guideGestureState">Belum teridentifikasi</strong></div>
+              <div class="status-row"><span>Ujung telunjuk</span><strong id="guidePointerState">-</strong></div>
+            </div>
+          </div>
+          <div>
+            <span class="section-kicker">5 isyarat mudah</span>
+            <div class="gesture-list">
+              <div class="gesture-row"><div class="gesture-symbol">01</div><div><h3>Arahkan / aim</h3><p>Angkat telunjuk dan arahkan ke kartu. Telunjuk <strong>hanya menggerakkan bidikan</strong>; gestur ini tidak menembak dan tidak mengambil kartu.</p></div></div>
+              <div class="gesture-row"><div class="gesture-symbol">02</div><div><h3>Tembak jaring</h3><p>Angkat telunjuk <strong>dan</strong> kelingking, lipat jari tengah serta jari manis. Gestur ini harus dibentuk stabil sebentar sebelum jaring keluar.</p></div></div>
+              <div class="gesture-row"><div class="gesture-symbol">03</div><div><h3>Ambil / grab</h3><p>Buat kepalan ringan atau dekatkan ujung ibu jari dengan telunjuk saat bidikan berada di atas kartu.</p></div></div>
+              <div class="gesture-row"><div class="gesture-symbol">04</div><div><h3>Lepas / release</h3><p>Buka telapak untuk melepas kartu yang sedang dipegang dan kembali ke mode bidik.</p></div></div>
+              <div class="gesture-row"><div class="gesture-symbol">05</div><div><h3>Jeda / pause</h3><p>Tahan telapak terbuka menghadap kamera selama sekitar 1,5 detik. Telapak yang terbuka sesaat tidak langsung menjeda.</p></div></div>
+            </div>
+            <p class="note-line">Setelah menjawab, soal atau misi berikutnya dibuka otomatis setelah jeda sekitar 1 detik. Tombol Lanjut tetap bisa ditekan lebih awal. Alternatif: mouse untuk membidik, klik kiri atau Spasi untuk menembak, tombol 1-4 untuk memilih kartu, Esc untuk jeda, dan R untuk mengulang misi. Gerakan tangan hanya mengendalikan bidikan; tidak ada klaim deteksi kekuatan pikiran.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-learn" class="screen" aria-labelledby="learnTitle">
+      <div class="page-section">
+        <div class="page-topline">
+          <div><span class="section-kicker">Baca sebelum misi</span><h1 class="page-title" id="learnTitle">Jejak menuju merdeka</h1><p class="page-intro">Ringkasan pengantar yang ramah untuk siswa kelas VI. Kedalaman dan cakupan dapat disesuaikan dengan modul ajar serta capaian pembelajaran yang digunakan sekolah.</p></div>
+          <button class="button button-secondary button-small" type="button" data-go="home">Kembali</button>
+        </div>
+        <div class="lesson-list">
+          <details class="lesson-row"><summary><span class="lesson-number">01</span>Kedatangan bangsa Eropa dan kolonialisme</summary><div class="lesson-body"><p>Pedagang Eropa datang ke Nusantara antara lain untuk mencari rempah-rempah. Persaingan dagang kemudian berkembang menjadi penguasaan wilayah dan sumber daya oleh kekuatan kolonial. Kebijakan kolonial membawa perubahan besar dan menimbulkan penderitaan bagi banyak penduduk.</p><p>Memahami masa ini membantu kita melihat mengapa muncul berbagai bentuk perlawanan dan gerakan untuk menentukan nasib sendiri.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">02</span>Perlawanan rakyat terhadap penjajahan</summary><div class="lesson-body"><p>Perlawanan berlangsung di banyak daerah dan dalam bentuk yang beragam. Kapitan Pattimura memimpin perlawanan rakyat Saparua terhadap Belanda pada 1817. Perjuangan Pangeran Diponegoro dan Cut Nyak Dhien juga menjadi bagian penting dari sejarah perlawanan di wilayah masing-masing.</p><p>Perjuangan daerah menunjukkan keberanian dan kecintaan kepada tanah air. Kemudian, semakin banyak tokoh menyadari perlunya persatuan yang melampaui batas daerah.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">03</span>Kebangkitan nasional</summary><div class="lesson-body"><p>Pada awal abad ke-20, pendidikan dan organisasi modern membuka cara baru untuk memperjuangkan perubahan. Budi Utomo didirikan pada 20 Mei 1908 oleh para pelajar STOVIA, dengan tokoh utama Soetomo dan dorongan gagasan dr. Wahidin Sudirohusodo. Organisasi ini memberi perhatian pada pendidikan dan kemajuan masyarakat.</p><p>Tanggal 20 Mei kemudian diperingati sebagai Hari Kebangkitan Nasional. Perjuangan melalui organisasi membantu menumbuhkan kesadaran kebangsaan.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">04</span>Organisasi dan tokoh pergerakan</summary><div class="lesson-body"><p>Para pejuang menggunakan banyak jalan: membangun organisasi, mengembangkan pendidikan, menulis, berdiskusi, dan menyebarkan gagasan persatuan. Ki Hadjar Dewantara memperjuangkan pendidikan, sedangkan tokoh seperti Soekarno, Mohammad Hatta, dan Ahmad Soebardjo berperan dalam proses menuju Proklamasi.</p><p>Kerja bersama dari berbagai latar belakang menjadi kekuatan penting dalam perjuangan bangsa.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">05</span>Pendudukan Jepang dan menjelang kemerdekaan</summary><div class="lesson-body"><p>Jepang menduduki Indonesia pada masa Perang Dunia II, dari 1942 sampai 1945. Pendudukan membawa penderitaan dan pembatasan bagi rakyat. Menjelang akhir perang, kabar menyerahnya Jepang mendorong para pemimpin dan pemuda membahas langkah kemerdekaan.</p><p>Berbagai badan seperti BPUPKI dan PPKI menjadi bagian dari proses persiapan, walaupun gagasan dan keputusan bangsa Indonesia lahir melalui peran banyak pihak.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">06</span>Peristiwa Rengasdengklok</summary><div class="lesson-body"><p>Pada 16 Agustus 1945, golongan muda membawa Soekarno dan Mohammad Hatta ke Rengasdengklok. Para pemuda mendesak agar kemerdekaan segera diproklamasikan setelah Jepang menyerah. Ahmad Soebardjo kemudian menjemput keduanya dan memberi jaminan bahwa proklamasi akan dilaksanakan pada 17 Agustus.</p><p>Peristiwa ini memperlihatkan perbedaan pandangan sekaligus dialog antara golongan muda dan golongan tua.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">07</span>Perumusan dan pembacaan Proklamasi</summary><div class="lesson-body"><p>Naskah Proklamasi dirumuskan pada malam menjelang 17 Agustus 1945 di rumah Laksamana Tadashi Maeda. Soekarno menulis konsep dengan sumbangan pemikiran Mohammad Hatta dan Ahmad Soebardjo. Sayuti Melik mengetik naskah yang kemudian ditandatangani Soekarno dan Hatta atas nama bangsa Indonesia.</p><p>Pada pagi 17 Agustus 1945, Soekarno membacakan Proklamasi di Jalan Pegangsaan Timur No. 56, Jakarta. Peristiwa ini menyatakan kemerdekaan Indonesia kepada rakyat dan dunia.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">08</span>Tokoh-tokoh yang berperan</summary><div class="lesson-body"><p>Perjuangan kemerdekaan melibatkan banyak tokoh dengan tugas berbeda. Soekarno dan Mohammad Hatta membacakan serta menandatangani naskah Proklamasi. Ahmad Soebardjo membantu proses perundingan dan perumusan. Sukarni menyampaikan usul agar naskah ditandatangani Soekarno dan Hatta, sedangkan Sayuti Melik mengetiknya.</p><p>Masih banyak tokoh dan rakyat di berbagai daerah yang berjuang melalui pendidikan, organisasi, diplomasi, maupun perjuangan fisik.</p></div></details>
+          <details class="lesson-row"><summary><span class="lesson-number">09</span>Mempertahankan kemerdekaan</summary><div class="lesson-body"><p>Proklamasi bukan akhir perjuangan. Bangsa Indonesia membangun pemerintahan dan mempertahankan kemerdekaan melalui berbagai cara. PPKI bersidang pada 18 Agustus 1945, antara lain mengesahkan UUD 1945 serta memilih Soekarno dan Mohammad Hatta sebagai Presiden dan Wakil Presiden.</p><p>Perlawanan rakyat di Surabaya pada 10 November 1945 menjadi salah satu peristiwa penting dalam perjuangan mempertahankan kemerdekaan. Persatuan dan keberanian warga menjadi pelajaran yang terus dikenang.</p></div></details>
+        </div>
+        <div class="source-list"><strong>Rujukan sejarah untuk bank soal dan ringkasan:</strong><br>
+          <a href="https://kebudayaan.kemdikbud.go.id/muspres/detik-detik-proklamasi/" target="_blank" rel="noopener">Museum Kepresidenan RI Balai Kirti - Detik-detik Proklamasi</a>
+          <a href="https://kebudayaan.kemdikbud.go.id/muspres/mempersiapkan-proklamasi/" target="_blank" rel="noopener">Museum Kepresidenan RI Balai Kirti - Mempersiapkan Proklamasi</a>
+          <a href="https://esi.kemdikbud.go.id/wiki/Panitia_Persiapan_Kemerdekaan_Indonesia_(PPKI)/_Dokuritsu_Junbi_Inkai" target="_blank" rel="noopener">Ensiklopedia Sejarah Indonesia Kemdikbud - PPKI</a>
+          <a href="https://kebudayaan.kemdikbud.go.id/bpkw10/budi-utomo-tonggak-lahirnya-kebangkitan-nasional/" target="_blank" rel="noopener">Kemdikbud - Budi Utomo dan Kebangkitan Nasional</a>
+          <a href="https://museumsumpahpemuda.kemdikbud.go.id/sejarah-sumpah-pemuda/" target="_blank" rel="noopener">Museum Sumpah Pemuda - Sejarah Sumpah Pemuda</a>
+          <a href="https://kebudayaan.kemdikbud.go.id/bpnbmaluku/sejarah-benteng-duurstede/" target="_blank" rel="noopener">Kemdikbud - Sejarah Benteng Duurstede</a>
+          <a href="https://kebudayaan.kemdikbud.go.id/bpcbsumbar/pertempuran-10-november-surabaya/" target="_blank" rel="noopener">Kemdikbud - Pertempuran 10 November Surabaya</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-arena" class="screen" aria-labelledby="arenaMissionTitle">
+      <div class="arena-wrap">
+        <div class="arena-topline">
+          <div class="arena-brand"><span class="brand-mark">SH</span><div><strong>SPIDER HERO</strong><span>Jaring perjuangan kemerdekaan</span></div></div>
+          <div class="arena-utility">
+            <button class="button button-secondary button-small" id="controlToggle" type="button">Kontrol: Tangan</button>
+            <button class="icon-button" id="arenaMuteButton" type="button" aria-label="Matikan suara" title="Suara"><span style="font-size:9px;font-weight:800">SFX</span></button>
+            <button class="icon-button" id="pauseButton" type="button" aria-label="Jeda permainan" title="Jeda"><span style="font-size:10px;font-weight:800">II</span></button>
+            <button class="icon-button" id="exitButton" type="button" aria-label="Keluar dari permainan" title="Keluar">X</button>
+          </div>
+        </div>
+        <div class="arena-heading">
+          <div><div class="mission-label" id="missionLabel">Misi 1 dari 5</div><h1 id="arenaMissionTitle">Arsip yang hilang</h1><p id="missionInstruction">Amankan fakta sejarah dengan menembakkan jaring ke kartu yang tepat.</p></div>
+          <div class="keyboard-hint">Pilih kartu: 1-4 / bidik + Spasi<br>Jeda: Esc / Ulangi misi: R<br>Umpan balik lanjut otomatis</div>
+        </div>
+        <div class="arena-hud" aria-label="Status misi">
+          <div class="hud-item"><span>Skor</span><strong id="hudScore">0</strong></div>
+          <div class="hud-item"><span>Benar</span><strong id="hudCorrect">0</strong></div>
+          <div class="hud-item"><span>Salah</span><strong id="hudWrong">0</strong></div>
+          <div class="hud-item"><span>Akurasi</span><strong id="hudAccuracy">0%</strong></div>
+          <div class="hud-item"><span>Waktu</span><strong id="hudTime">07:00</strong></div>
+          <div class="hud-item"><span>Combo</span><strong id="hudCombo">x0</strong></div>
+          <div class="hud-item"><span>Progres</span><strong id="hudProgress">0 / 20</strong></div>
+          <div class="hud-item hud-energy"><span>Energi jaring <b id="hudEnergyText">100%</b></span><div class="energy-track"><div class="energy-fill" id="hudEnergyFill"></div></div></div>
+        </div>
+        <div class="question-panel">
+          <div class="question-meta"><span id="questionTopic">Tantangan sejarah</span><span id="questionCountLabel">Soal 1 dari 20</span></div>
+          <p class="question-text" id="questionText">Menyiapkan soal...</p>
+        </div>
+        <div class="arena-feedback" id="arenaFeedback" role="status" aria-live="polite" hidden>
+          <h2 class="feedback-title" id="feedbackTitle"></h2>
+          <p class="feedback-copy" id="feedbackCopy"></p>
+          <p class="feedback-source" id="feedbackSource"></p>
+          <div class="feedback-actions"><button class="button button-secondary button-small" id="feedbackRetry" type="button" hidden>Coba lagi</button><button class="button button-primary button-small" id="feedbackNext" type="button" hidden>Lanjut</button></div>
+        </div>
+        <div class="arena-stage">
+          <canvas id="arenaCanvas" tabindex="0" role="img" aria-label="Arena permainan. Arahkan bidikan dan tembak salah satu dari empat kartu jawaban."></canvas>
+        </div>
+        <div class="arena-bottom">
+          <div class="arena-hand-readout">
+            <div class="mini-camera" id="gameVideoShell"><video id="gameVideo" playsinline muted aria-label="Pratinjau webcam saat bermain"></video><div class="video-placeholder" id="gameVideoPlaceholder">Kamera nonaktif<br>Mouse tersedia</div><div class="video-corner"><i class="status-dot" id="gameVideoDot"></i><span>Webcam</span></div></div>
+            <span class="readout-pair"><i class="status-dot" id="gameHandDot"></i><span>Tangan: <strong id="gameHandState">Belum terdeteksi</strong></span></span>
+            <span class="readout-pair"><span>Gestur: <strong id="gameGestureState">Bidik</strong></span></span>
+            <span class="readout-pair"><span>Model: <strong id="gameModelState">Menunggu izin kamera</strong></span></span>
+            <span class="readout-pair"><span>Bidik: <strong id="gamePointerState">Mouse</strong></span></span>
+          </div>
+          <div class="arena-bottom-right"><button class="button button-secondary button-small" id="retryMissionButton" type="button">Ulangi misi</button><button class="button button-quiet button-small" id="arenaHelpButton" type="button">Panduan gestur</button></div>
+        </div>
+        <div class="sr-only" id="accessibleAnswers" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="screen-results" class="screen" aria-labelledby="resultTitle">
+      <div class="page-section">
+        <div class="result-hero">
+          <div class="result-rank" id="resultRank">PEJUANG MUDA</div>
+          <h1 id="resultTitle">Arsip perjuangan<br>berhasil diamankan.</h1>
+          <p id="resultGreeting">Perjalanan belajar selesai.</p>
+          <div class="result-score"><strong id="resultScore">0</strong><span>total poin</span></div>
+        </div>
+        <div class="result-summary">
+          <div class="result-stat"><strong id="resultAccuracy">0%</strong><span>Akurasi</span></div>
+          <div class="result-stat"><strong id="resultCorrect">0</strong><span>Jawaban benar</span></div>
+          <div class="result-stat"><strong id="resultWrong">0</strong><span>Jawaban salah</span></div>
+          <div class="result-stat"><strong id="resultTime">00:00</strong><span>Waktu bermain</span></div>
+        </div>
+        <div class="review-block"><h2>Catatan belajar</h2><p id="resultMissionCount"></p><ul id="reviewTopics"></ul></div>
+        <div class="result-actions">
+          <button class="button button-primary" id="playAgainButton" type="button">Main lagi</button>
+          <button class="button button-secondary" id="reviewWrongButton" type="button">Ulangi soal yang salah</button>
+          <button class="button button-secondary" type="button" data-go="learn">Pelajari materi</button>
+          <button class="button button-quiet" type="button" data-go="home">Kembali ke beranda</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-teacher" class="screen" aria-labelledby="teacherTitle">
+      <div class="page-section">
+        <div class="page-topline">
+          <div><span class="section-kicker">Pengelolaan pembelajaran</span><h1 class="page-title" id="teacherTitle">Mode guru</h1><p class="page-intro">Kelola bank soal dan pengaturan sesi. Perubahan disimpan di browser ini.</p></div>
+          <button class="button button-secondary button-small" type="button" data-go="home">Kembali ke beranda</button>
+        </div>
+        <div class="teacher-grid">
+          <div class="interaction-panel teacher-panel">
+            <h2 id="questionFormTitle">Tambah soal</h2><p>Empat pilihan wajib diisi. Kunci dan pembahasan akan dipakai pada umpan balik.</p>
+            <form id="questionForm" novalidate>
+              <div class="form-grid two">
+                <div class="field"><label for="teacherQuestionId">ID soal</label><input id="teacherQuestionId" maxlength="24" required></div>
+                <div class="field"><label for="teacherMission">Misi</label><select id="teacherMission"><option value="1">1 - Arsip yang hilang</option><option value="2">2 - Jejak para pahlawan</option><option value="3">3 - Lini masa kemerdekaan</option><option value="4">4 - Selamatkan dokumen</option><option value="5">5 - Misi Proklamasi</option></select></div>
+              </div>
+              <div class="form-grid" style="margin-top:12px">
+                <div class="field"><label for="teacherTopic">Materi / subtopik</label><input id="teacherTopic" maxlength="80" required></div>
+                <div class="field"><label for="teacherPrompt">Teks soal</label><textarea id="teacherPrompt" maxlength="280" required></textarea></div>
+                <div class="field"><label for="choice0">Pilihan A</label><input id="choice0" maxlength="110" required></div>
+                <div class="field"><label for="choice1">Pilihan B</label><input id="choice1" maxlength="110" required></div>
+                <div class="field"><label for="choice2">Pilihan C</label><input id="choice2" maxlength="110" required></div>
+                <div class="field"><label for="choice3">Pilihan D</label><input id="choice3" maxlength="110" required></div>
+              </div>
+              <div class="form-grid two" style="margin-top:12px">
+                <div class="field"><label for="teacherCorrect">Jawaban benar</label><select id="teacherCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div>
+                <div class="field"><label for="teacherDifficulty">Kesulitan</label><select id="teacherDifficulty"><option>Mudah</option><option>Sedang</option><option>Menantang</option></select></div>
+              </div>
+              <div class="form-grid" style="margin-top:12px">
+                <div class="field"><label for="teacherExplanation">Pembahasan</label><textarea id="teacherExplanation" maxlength="450" required></textarea></div>
+                <div class="field"><label for="teacherSource">Sumber / catatan verifikasi</label><input id="teacherSource" maxlength="220" required></div>
+              </div>
+              <div class="editor-actions"><button class="button button-primary button-small" type="submit" id="saveQuestionButton">Simpan soal</button><button class="button button-secondary button-small" type="button" id="clearQuestionForm">Kosongkan</button></div>
+            </form>
+          </div>
+          <div class="interaction-panel teacher-panel">
+            <h2>Bank soal <span id="bankCount" style="color:#8ea8b7;font-size:11px;font-weight:500"></span></h2>
+            <p>Soal aktif akan disimpan di localStorage. Ekspor JSON untuk membuat salinan cadangan.</p>
+            <div class="teacher-toolbar">
+              <button class="button button-primary button-small" id="newQuestionButton" type="button">Soal baru</button>
+              <button class="button button-secondary button-small" id="exportBankButton" type="button">Ekspor JSON</button>
+              <button class="button button-secondary button-small" id="importBankButton" type="button">Impor JSON</button>
+              <input class="sr-only" id="importBankFile" type="file" accept="application/json,.json">
+              <button class="button button-quiet button-small" id="restoreBankButton" type="button">Pulihkan bawaan</button>
+            </div>
+            <div class="teacher-list" id="teacherQuestionList" style="margin-top:14px" aria-live="polite"></div>
+            <div class="teacher-settings">
+              <h2>Pengaturan sesi</h2>
+              <p>Durasi 5-10 menit, 3-5 soal per misi, serta pengaturan kontrol dan gestur.</p>
+              <form id="teacherSettingsForm">
+                <div class="form-grid two">
+                  <div class="field"><label for="settingDuration">Durasi (menit)</label><input id="settingDuration" type="number" min="5" max="10" required></div>
+                  <div class="field"><label for="settingQuestionCount">Soal per misi</label><input id="settingQuestionCount" type="number" min="1" max="5" required></div>
+                  <div class="field"><label for="settingAttempts">Percobaan per soal</label><input id="settingAttempts" type="number" min="1" max="3" required></div>
+                  <div class="field"><label for="settingCooldown">Cooldown tembakan (ms)</label><input id="settingCooldown" type="number" min="500" max="800" step="50" required></div>
+                  <div class="field"><label for="settingFeedbackDelay">Jeda auto-lanjut (detik)</label><input id="settingFeedbackDelay" type="number" min="1" max="8" required></div>
+                  <div class="field"><label for="settingSensitivity">Sensitivitas gestur</label><input id="settingSensitivity" type="range" min="0.35" max="0.85" step="0.05"><span id="sensitivityValue" style="color:#849cad;font-size:10px"></span></div>
+                  <div class="field"><label for="settingControl">Kontrol awal</label><select id="settingControl"><option value="hand">Gerakan tangan</option><option value="mouse">Mouse dan keyboard</option></select></div>
+                </div>
+                <label class="field-check" style="margin-top:12px"><input id="settingSound" type="checkbox"> Efek suara aktif</label>
+                <div class="editor-actions"><button class="button button-primary button-small" type="submit">Simpan pengaturan</button><button class="button button-quiet button-small" id="clearHistoryButton" type="button">Hapus riwayat permainan</button></div>
+              </form>
+              <p class="storage-note" id="storageStatus">Penyimpanan lokal tersedia pada browser ini.</p>
+              <p class="storage-note">PIN awal Mode Guru adalah Inovatif dan hanya pengunci sederhana di sisi klien. PIN dapat ditemukan melalui kode sumber; jangan gunakan sebagai keamanan untuk data rahasia.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-box">
+      <div class="modal-head"><div><h2 id="settingsTitle">Pengaturan permainan</h2><p>Atur kontrol, suara, dan kenyamanan gestur.</p></div><button class="icon-button" type="button" data-close-modal="settingsModal" aria-label="Tutup pengaturan">×</button></div>
+      <div class="modal-field"><label for="modalControl">Kontrol pilihan</label><select id="modalControl"><option value="hand">Gerakan tangan (webcam)</option><option value="mouse">Mouse dan keyboard</option></select></div>
+      <div class="modal-field"><label for="modalSensitivity">Sensitivitas gestur: <span id="modalSensitivityValue">55%</span></label><input id="modalSensitivity" type="range" min="0.35" max="0.85" step="0.05"></div>
+      <div class="modal-field"><label for="modalCooldown">Cooldown tembakan</label><select id="modalCooldown"><option value="500">500 ms</option><option value="600">600 ms</option><option value="650">650 ms</option><option value="700">700 ms</option><option value="800">800 ms</option></select></div>
+      <label class="field-check"><input id="modalSound" type="checkbox"> Efek suara aktif</label>
+      <p class="modal-warning">Akses webcam umumnya membutuhkan HTTPS atau localhost. Jika izin ditolak, game tetap bisa dimainkan dengan mouse dan keyboard.</p>
+      <div class="modal-actions"><button class="button button-secondary button-small" type="button" data-close-modal="settingsModal">Tutup</button><button class="button button-primary button-small" id="saveModalSettings" type="button">Simpan</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <div class="modal-box">
+      <div class="modal-head"><div><h2 id="pinTitle">Masuk Mode Guru</h2><p>Masukkan PIN lokal untuk membuka pengelolaan soal.</p></div><button class="icon-button" type="button" data-close-modal="pinModal" aria-label="Tutup">×</button></div>
+      <form id="pinForm"><div class="modal-field"><label for="teacherPin">PIN guru</label><input id="teacherPin" type="password" autocomplete="off" required></div><p class="modal-warning">PIN awal: Inovatif. Pengunci ini bukan sistem keamanan dan tidak melindungi data sensitif.</p><p class="modal-warning" id="pinError" role="alert"></p><div class="modal-actions"><button class="button button-secondary button-small" type="button" data-close-modal="pinModal">Batal</button><button class="button button-primary button-small" type="submit">Buka mode guru</button></div></form>
+    </div>
+  </div>
+  <div class="pause-overlay" id="pauseOverlay" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="pause-box"><div class="section-kicker">Misi dijeda</div><h2 id="pauseTitle">Tarik napas, Hero.</h2><p>Waktu berhenti sementara. Arsip akan tetap menunggu sampai kamu siap.</p><div class="pause-actions"><button class="button button-primary" id="resumeButton" type="button">Lanjutkan misi</button><button class="button button-secondary" id="pauseRestartButton" type="button">Ulangi misi ini</button><button class="button button-quiet" id="pauseExitButton" type="button">Keluar ke beranda</button></div></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <video id="cameraSource" playsinline muted class="sr-only" aria-hidden="true"></video>
+
+  <script>
+    "use strict";
+    const STORAGE = { settings: "spiderHero.settings.v1", bank: "spiderHero.bank.v1", name: "spiderHero.player.v1", high: "spiderHero.highscore.v1", history: "spiderHero.history.v1" };
+    const MISSION_NAMES = ["", "Arsip yang hilang", "Jejak para pahlawan", "Lini masa kemerdekaan", "Selamatkan dokumen", "Misi Proklamasi"];
+    const MISSION_HINTS = ["", "Amankan fakta sejarah dengan menembakkan jaring ke kartu yang tepat.", "Temukan tokoh dan peran penting dalam perjuangan.", "Susuri urutan waktu menuju kemerdekaan.", "Pilih informasi yang benar untuk menyelamatkan arsip.", "Selesaikan tantangan campuran dan jaga ingatan kemerdekaan."];
+    const DEFAULT_SETTINGS = { durationMinutes: 7, questionsPerMission: 4, attempts: 2, sound: true, control: "hand", sensitivity: 0.55, cooldownMs: 650, feedbackDelay: 1, calibrationBounds: null, settingsVersion: 2 };
+    const DEFAULT_QUESTIONS = [
+      { id: "SH-01", topic: "Proklamasi", mission: 1, question: "Peristiwa pembacaan Proklamasi Kemerdekaan Indonesia berlangsung pada tanggal ...", choices: ["1 Juni 1945", "17 Agustus 1945", "18 Agustus 1945", "10 November 1945"], correct: 1, explanation: "Proklamasi Kemerdekaan Indonesia dibacakan pada 17 Agustus 1945 oleh Soekarno didampingi Mohammad Hatta.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-02", topic: "Tokoh Proklamasi", mission: 1, question: "Siapakah tokoh yang membacakan naskah Proklamasi pada 17 Agustus 1945?", choices: ["Mohammad Hatta", "Soekarno", "Ahmad Soebardjo", "Sayuti Melik"], correct: 1, explanation: "Soekarno membacakan Proklamasi di Pegangsaan Timur No. 56, Jakarta, didampingi Mohammad Hatta.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-03", topic: "Tempat Proklamasi", mission: 1, question: "Di manakah Proklamasi Kemerdekaan dibacakan?", choices: ["Rumah Laksamana Maeda di Menteng", "Gedung STOVIA", "Jalan Pegangsaan Timur No. 56, Jakarta", "Lapangan Ikada"], correct: 2, explanation: "Pembacaan Proklamasi berlangsung di halaman rumah Soekarno, Jalan Pegangsaan Timur No. 56, Jakarta.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-04", topic: "Rengasdengklok", mission: 1, question: "Peristiwa Rengasdengklok yang melibatkan Soekarno dan Mohammad Hatta terjadi pada ...", choices: ["15 Agustus 1945", "16 Agustus 1945", "17 Agustus 1945", "18 Agustus 1945"], correct: 1, explanation: "Soekarno dan Mohammad Hatta dibawa ke Rengasdengklok pada 16 Agustus 1945 oleh golongan muda.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-05", topic: "Peran golongan muda", mission: 1, question: "Apa tujuan utama golongan muda membawa Soekarno dan Hatta ke Rengasdengklok?", choices: ["Mendesak agar kemerdekaan segera diproklamasikan", "Mengajak mereka menghadiri sidang PPKI di Bandung", "Meminta Jepang membentuk organisasi baru", "Mempersiapkan pertempuran di Surabaya"], correct: 0, explanation: "Golongan muda mendesak agar Proklamasi segera dilakukan setelah Jepang menyerah, tanpa menunggu keputusan Jepang.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-06", topic: "Ahmad Soebardjo", mission: 2, question: "Apa peran penting Ahmad Soebardjo setelah peristiwa Rengasdengklok?", choices: ["Mengetik naskah Proklamasi", "Menjemput Soekarno-Hatta dan memberi jaminan kepada golongan muda", "Mengibarkan bendera di Surabaya", "Memimpin sidang pertama BPUPKI"], correct: 1, explanation: "Ahmad Soebardjo menjemput Soekarno dan Hatta serta menjamin bahwa Proklamasi akan dilaksanakan pada 17 Agustus 1945.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-07", topic: "Sayuti Melik", mission: 2, question: "Apa tugas Sayuti Melik dalam persiapan Proklamasi?", choices: ["Mengetik naskah Proklamasi", "Menulis konsep awal naskah", "Menjemput Soekarno dari Rengasdengklok", "Menjadi ketua PPKI"], correct: 0, explanation: "Soekarno meminta Sayuti Melik mengetik naskah Proklamasi setelah konsepnya disepakati.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-08", topic: "Sukarni", mission: 2, question: "Usul Sukarni yang disetujui dalam perumusan naskah Proklamasi adalah ...", choices: ["Naskah ditandatangani Soekarno dan Mohammad Hatta atas nama bangsa Indonesia", "Proklamasi dibacakan di Lapangan Ikada", "Naskah ditandatangani oleh seluruh anggota PPKI", "Pembacaan ditunda sampai 18 Agustus"], correct: 0, explanation: "Sukarni mengusulkan agar naskah ditandatangani oleh Soekarno dan Mohammad Hatta atas nama bangsa Indonesia.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-09", topic: "Fatmawati", mission: 2, question: "Apa peran Fatmawati pada saat Proklamasi Kemerdekaan?", choices: ["Menjahit bendera Merah Putih yang dikibarkan", "Mengetik naskah Proklamasi", "Memimpin sidang PPKI", "Menyusun teks Sumpah Pemuda"], correct: 0, explanation: "Bendera Merah Putih yang dikibarkan pada upacara Proklamasi dijahit oleh Fatmawati.", difficulty: "Mudah", source: "Indonesia.go.id, Malam Proklamasi Kemerdekaan Indonesia di Rumah Laksamana Maeda." },
+      { id: "SH-10", topic: "Penandatanganan Proklamasi", mission: 2, question: "Siapakah yang menandatangani naskah Proklamasi atas nama bangsa Indonesia?", choices: ["Soekarno dan Ahmad Soebardjo", "Soekarno dan Mohammad Hatta", "Mohammad Hatta dan Sukarni", "Sayuti Melik dan B.M. Diah"], correct: 1, explanation: "Naskah Proklamasi ditandatangani Soekarno dan Mohammad Hatta atas nama bangsa Indonesia.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-11", topic: "Budi Utomo", mission: 3, question: "Budi Utomo didirikan pada tanggal ...", choices: ["20 Mei 1908", "28 Oktober 1928", "1 Maret 1945", "7 Agustus 1945"], correct: 0, explanation: "Budi Utomo didirikan pada 20 Mei 1908. Tanggal tersebut kemudian diperingati sebagai Hari Kebangkitan Nasional.", difficulty: "Mudah", source: "Kemdikbud, Budi Utomo: Tonggak Lahirnya Kebangkitan Nasional." },
+      { id: "SH-12", topic: "Sumpah Pemuda", mission: 3, question: "Kongres Pemuda Kedua yang melahirkan ikrar Sumpah Pemuda berlangsung pada ...", choices: ["20 Mei 1908", "28 Oktober 1928", "17 Agustus 1945", "10 November 1945"], correct: 1, explanation: "Kongres Pemuda Kedua berlangsung pada 27-28 Oktober 1928; ikrar Sumpah Pemuda dikenal dari keputusan pada 28 Oktober.", difficulty: "Mudah", source: "Museum Sumpah Pemuda Kemdikbud, Sejarah Sumpah Pemuda." },
+      { id: "SH-13", topic: "BPUPKI", mission: 3, question: "Siapakah ketua BPUPKI?", choices: ["Dr. Radjiman Wedyodiningrat", "Soekarno", "Mohammad Hatta", "Ahmad Soebardjo"], correct: 0, explanation: "BPUPKI diketuai oleh Dr. Radjiman Wedyodiningrat dan bertugas membahas persiapan kemerdekaan.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Menuju Negara Kesatuan Republik Indonesia." },
+      { id: "SH-14", topic: "PPKI", mission: 3, question: "PPKI dibentuk pada tanggal ...", choices: ["29 April 1945", "7 Agustus 1945", "16 Agustus 1945", "18 Agustus 1945"], correct: 1, explanation: "PPKI dibentuk pada 7 Agustus 1945 sebagai badan yang melanjutkan persiapan kemerdekaan setelah BPUPKI.", difficulty: "Sedang", source: "Ensiklopedia Sejarah Indonesia Kemdikbud, PPKI." },
+      { id: "SH-15", topic: "Urutan peristiwa", mission: 3, question: "Peristiwa penting apa yang dilakukan PPKI sehari setelah Proklamasi?", choices: ["Mengesahkan UUD 1945 dan memilih Presiden serta Wakil Presiden", "Mendirikan Budi Utomo", "Mengadakan Kongres Pemuda Kedua", "Membawa Soekarno-Hatta ke Rengasdengklok"], correct: 0, explanation: "Pada 18 Agustus 1945, PPKI mengesahkan UUD 1945 serta memilih Soekarno sebagai Presiden dan Mohammad Hatta sebagai Wakil Presiden.", difficulty: "Sedang", source: "Ensiklopedia Sejarah Indonesia Kemdikbud, PPKI." },
+      { id: "SH-16", topic: "Perumusan naskah", mission: 4, question: "Di rumah siapa naskah Proklamasi dirumuskan pada malam menjelang 17 Agustus 1945?", choices: ["Laksamana Tadashi Maeda", "Djiauw Kie Siong", "Dr. Radjiman Wedyodiningrat", "Ki Hadjar Dewantara"], correct: 0, explanation: "Soekarno, Mohammad Hatta, dan Ahmad Soebardjo merumuskan naskah di rumah Laksamana Tadashi Maeda di Jakarta.", difficulty: "Mudah", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-17", topic: "Perumus Proklamasi", mission: 4, question: "Siapa saja tokoh yang merumuskan konsep naskah Proklamasi?", choices: ["Soekarno, Mohammad Hatta, dan Ahmad Soebardjo", "Soekarno, Sayuti Melik, dan Sukarni", "Mohammad Hatta, Fatmawati, dan B.M. Diah", "Sukarni, Wikana, dan Darwis"], correct: 0, explanation: "Konsep naskah dirumuskan oleh Soekarno, Mohammad Hatta, dan Ahmad Soebardjo. Soekarno menuliskan konsepnya.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-18", topic: "Naskah tulisan tangan", mission: 4, question: "Siapakah yang menulis tangan konsep awal naskah Proklamasi?", choices: ["Mohammad Hatta", "Sayuti Melik", "Soekarno", "Sukarni"], correct: 2, explanation: "Soekarno menulis konsep naskah dengan pemikiran yang disampaikan bersama Mohammad Hatta dan Ahmad Soebardjo.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Mempersiapkan Proklamasi." },
+      { id: "SH-19", topic: "Kembali dari Rengasdengklok", mission: 4, question: "Siapakah yang menjemput Soekarno dan Hatta dari Rengasdengklok untuk kembali ke Jakarta?", choices: ["Sukarni", "Ahmad Soebardjo", "Sayuti Melik", "W.R. Supratman"], correct: 1, explanation: "Ahmad Soebardjo menjemput Soekarno dan Hatta setelah memberi jaminan kepada golongan muda tentang pelaksanaan Proklamasi.", difficulty: "Sedang", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-20", topic: "Pembacaan Proklamasi", mission: 4, question: "Pada pukul berapa Proklamasi dibacakan di Pegangsaan Timur No. 56?", choices: ["Pukul 06.00", "Pukul 08.00", "Pukul 10.00", "Pukul 12.00"], correct: 2, explanation: "Pembacaan Proklamasi dijadwalkan dan dilaksanakan pada pukul 10.00 WIB, 17 Agustus 1945.", difficulty: "Menantang", source: "Museum Kepresidenan RI Balai Kirti, Detik-detik Proklamasi." },
+      { id: "SH-21", topic: "PPKI dan pemerintahan", mission: 5, question: "Siapakah yang dipilih PPKI menjadi Presiden dan Wakil Presiden pada 18 Agustus 1945?", choices: ["Soekarno dan Mohammad Hatta", "Mohammad Hatta dan Ahmad Soebardjo", "Soekarno dan Sutan Sjahrir", "Soekarno dan Dr. Radjiman Wedyodiningrat"], correct: 0, explanation: "PPKI memilih Soekarno sebagai Presiden dan Mohammad Hatta sebagai Wakil Presiden Republik Indonesia.", difficulty: "Mudah", source: "Ensiklopedia Sejarah Indonesia Kemdikbud, PPKI." },
+      { id: "SH-22", topic: "Mempertahankan kemerdekaan", mission: 5, question: "Pertempuran besar di Surabaya yang dikenang setiap Hari Pahlawan memuncak pada ...", choices: ["20 Mei 1908", "28 Oktober 1928", "10 November 1945", "18 Agustus 1945"], correct: 2, explanation: "Pertempuran Surabaya mencapai puncak pada 10 November 1945, yang kemudian diperingati sebagai Hari Pahlawan.", difficulty: "Sedang", source: "Kemdikbud, Pertempuran 10 November Surabaya." },
+      { id: "SH-23", topic: "Kebangkitan Nasional", mission: 5, question: "Bidang yang banyak diperhatikan Budi Utomo pada masa awal adalah ...", choices: ["Pendidikan dan kemajuan sosial masyarakat", "Pembuatan kapal perang", "Perdagangan rempah di Eropa", "Penyelenggaraan sidang PPKI"], correct: 0, explanation: "Budi Utomo memberi perhatian pada pendidikan, kebudayaan, dan kemajuan sosial masyarakat.", difficulty: "Sedang", source: "Kemdikbud, Budi Utomo: Tonggak Lahirnya Kebangkitan Nasional." },
+      { id: "SH-24", topic: "Perlawanan daerah", mission: 5, question: "Kapitan Pattimura memimpin perlawanan rakyat Saparua terhadap Belanda pada tahun ...", choices: ["1817", "1908", "1928", "1945"], correct: 0, explanation: "Thomas Matulessy yang dikenal sebagai Kapitan Pattimura memimpin perlawanan rakyat di Saparua pada 1817.", difficulty: "Menantang", source: "Kemdikbud, Sejarah Benteng Duurstede." },
+      { id: "SH-25", topic: "Makna Sumpah Pemuda", mission: 5, question: "Apa pesan persatuan yang ditegaskan dalam Sumpah Pemuda?", choices: ["Satu tanah air, satu bangsa, dan satu bahasa persatuan Indonesia", "Setiap daerah harus memiliki bahasa negara yang berbeda", "Kemerdekaan hanya diperjuangkan oleh satu organisasi", "Perjuangan cukup dilakukan di satu pulau"], correct: 0, explanation: "Sumpah Pemuda menegaskan tekad bertumpah darah satu, berbangsa satu, dan menjunjung bahasa persatuan, yaitu Indonesia.", difficulty: "Sedang", source: "Museum Sumpah Pemuda Kemdikbud, Sejarah Sumpah Pemuda." }
+    ];
+
+    function readStorage(key, fallback) {
+      try { const value = localStorage.getItem(key); return value === null ? fallback : value; }
+      catch (error) { return fallback; }
+    }
+    function readJSON(key, fallback) {
+      try { const raw = readStorage(key, null); return raw === null ? fallback : JSON.parse(raw); }
+      catch (error) { return fallback; }
+    }
+    function writeStorage(key, value) {
+      try { localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value)); return true; }
+      catch (error) { setStorageStatus("Penyimpanan browser tidak tersedia atau penuh. Sesi ini tetap berjalan, tetapi perubahan mungkin tidak tersimpan."); return false; }
+    }
+    function clone(value) { return JSON.parse(JSON.stringify(value)); }
+    function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+    function normalizeSettings(raw) {
+      const s = { ...DEFAULT_SETTINGS, ...(raw && typeof raw === "object" ? raw : {}) };
+      // Migrasi: pengaturan tersimpan dari versi lebih lama dipaksa memakai
+      // jeda auto-lanjut terbaru, tanpa menghapus preferensi lainnya.
+      if ((Number(s.settingsVersion) || 0) < DEFAULT_SETTINGS.settingsVersion) {
+        s.feedbackDelay = DEFAULT_SETTINGS.feedbackDelay;
+        s.settingsVersion = DEFAULT_SETTINGS.settingsVersion;
+      }
+      s.durationMinutes = clamp(Number(s.durationMinutes) || 7, 5, 10);
+      s.questionsPerMission = clamp(Number(s.questionsPerMission) || 4, 1, 5);
+      s.attempts = clamp(Number(s.attempts) || 2, 1, 3);
+      s.sensitivity = clamp(Number(s.sensitivity) || .55, .35, .85);
+      s.cooldownMs = clamp(Number(s.cooldownMs) || 650, 500, 800);
+      s.feedbackDelay = clamp(Number(s.feedbackDelay) || 1, 1, 8);
+      s.control = s.control === "mouse" ? "mouse" : "hand";
+      return s;
+    }
+    function normalizeQuestion(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const q = {
+        id: String(raw.id || "").trim().slice(0, 24),
+        topic: String(raw.topic || "").trim().slice(0, 80),
+        mission: Number(raw.mission),
+        question: String(raw.question || raw.prompt || "").trim().slice(0, 280),
+        choices: Array.isArray(raw.choices) ? raw.choices.map(item => String(item).trim().slice(0, 110)) : [],
+        correct: Number(raw.correct),
+        explanation: String(raw.explanation || "").trim().slice(0, 450),
+        difficulty: String(raw.difficulty || "Mudah").slice(0, 24),
+        source: String(raw.source || "").trim().slice(0, 220)
+      };
+      if (!q.id || !q.topic || !q.question || q.choices.length !== 4 || q.choices.some(item => !item) || !q.explanation || !q.source || !Number.isInteger(q.correct) || q.correct < 0 || q.correct > 3 || !Number.isInteger(q.mission) || q.mission < 1 || q.mission > 5) return null;
+      return q;
+    }
+    function normalizeBank(raw) {
+      if (!Array.isArray(raw)) return null;
+      const normalized = raw.map(normalizeQuestion);
+      if (normalized.some(item => !item)) return null;
+      const ids = normalized.map(q => q.id.toLowerCase());
+      if (new Set(ids).size !== ids.length) return null;
+      return normalized;
+    }
+
+    let settings = normalizeSettings(readJSON(STORAGE.settings, DEFAULT_SETTINGS));
+    let bank = normalizeBank(readJSON(STORAGE.bank, null)) || clone(DEFAULT_QUESTIONS);
+    let highScore = Math.max(0, Number(readStorage(STORAGE.high, "0")) || 0);
+    let gameHistory = readJSON(STORAGE.history, []);
+    if (!Array.isArray(gameHistory)) gameHistory = [];
+    const state = {
+      screen: "home", stream: null, hands: null, cameraFrame: 0, cameraBusy: false, lastCameraFrame: 0,
+      cameraOk: false, modelFailed: false, modelState: "Menunggu izin kamera", handDetected: false,
+      handGesture: "aim", lastGesture: "", pointer: { x: .72, y: .5 }, pointerSmooth: null,
+      calibrationBounds: settings.calibrationBounds || null, calibration: null, pauseHandSince: 0, pauseHandTriggered: false,
+      currentControl: settings.control, soundContext: null, toastTimer: 0,
+      score: 0, correct: 0, wrong: 0, attempts: 0, combo: 0, energy: 100,
+      session: null, missionIndex: 0, questionIndex: 0, question: null, viewChoices: [], questionAttempts: 0, guideReturnScreen: "home", cameraRequest: null,
+      questionLocked: false, feedbackMode: "", projectiles: [], hitboxes: [], grabbedTarget: null, particles: [],
+      mousePointer: { x: 0, y: 0 }, lastShotAt: 0, intermission: "", lastFailedIds: [], finished: false,
+      gestureBuffer: [], feedbackRemaining: 0, feedbackBaseLabel: "", feedbackAdvanced: false,
+      heroTime: 0, lastFrameTime: 0, teacherEditId: null
+    };
+
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
+    const arenaCanvas = $("#arenaCanvas");
+    const arenaCtx = arenaCanvas.getContext("2d");
+    const heroCanvas = $("#heroCanvas");
+    const heroCtx = heroCanvas.getContext("2d");
+    const cameraSource = $("#cameraSource");
+    const toastEl = $("#toast");
+
+    function setStorageStatus(message) {
+      const el = $("#storageStatus");
+      if (el) el.textContent = message;
+    }
+    function saveSettings() {
+      settings = normalizeSettings(settings);
+      writeStorage(STORAGE.settings, settings);
+    }
+    function saveBank() {
+      writeStorage(STORAGE.bank, bank);
+      renderBankList();
+    }
+    function savePlayerName() {
+      const name = $("#playerName").value.trim().slice(0, 24);
+      writeStorage(STORAGE.name, name);
+    }
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => toastEl.classList.remove("show"), 3600);
+    }
+    function setCameraStatus(message, kind = "idle") {
+      $("#homeCameraStatus").textContent = message;
+      $("#cameraPanelStatus").textContent = message;
+      $("#guideCameraState").textContent = message;
+      const dot = $("#homeCameraDot");
+      dot.className = `status-dot ${kind === "live" ? "live" : kind === "warn" ? "warn" : ""}`;
+      $("#guideVideoDot").className = `status-dot ${kind === "live" ? "live" : kind === "warn" ? "warn" : ""}`;
+      $("#gameVideoDot").className = `status-dot ${kind === "live" ? "live" : kind === "warn" ? "warn" : ""}`;
+    }
+    function setModelStatus(message) {
+      state.modelState = message;
+      $("#guideModelState").textContent = message;
+      $("#gameModelState").textContent = message;
+    }
+    function setHandStatus(detected, gesture = "aim", point = null) {
+      state.handDetected = detected;
+      state.handGesture = gesture;
+      $("#guideHandState").textContent = detected ? "Tangan terdeteksi" : "Belum terdeteksi";
+      $("#gameHandState").textContent = detected ? "Terdeteksi" : "Belum terdeteksi";
+      $("#guideGestureState").textContent = detected ? gestureLabel(gesture) : "Belum teridentifikasi";
+      $("#gameGestureState").textContent = detected ? gestureLabel(gesture) : "Bidik";
+      $("#guideHandState").style.color = detected ? "#8ce6b7" : "";
+      $("#gameHandDot").className = `status-dot ${detected ? "live" : ""}`;
+      if (point) {
+        const x = Math.round(point.x * 100);
+        const y = Math.round(point.y * 100);
+        $("#guidePointerState").textContent = `${x}% x ${y}%`;
+        $("#gamePointerState").textContent = `${x}% x ${y}%`;
+      } else if (!detected) {
+        $("#guidePointerState").textContent = "-";
+        $("#gamePointerState").textContent = state.currentControl === "mouse" ? "Mouse" : "Menunggu tangan";
+      }
+    }
+    function gestureLabel(gesture) {
+      return ({ aim: "Bidik / aim", web: "Tembak jaring", grab: "Ambil / grab", open: "Telapak terbuka", lost: "Tangan tidak terdeteksi" })[gesture] || "Bidik / aim";
+    }
+    function updateVideoShells(active) {
+      $("#guideVideoShell").classList.toggle("video-live", active);
+      $("#gameVideoShell").classList.toggle("video-live", active);
+    }
+    function showScreen(name) {
+      const previous = state.screen;
+      if (previous === "arena" && name !== "arena") cleanupCamera();
+      if (previous === "guide" && name !== "guide" && name !== "arena") cleanupCamera();
+      $$(".screen").forEach(screen => screen.classList.remove("active"));
+      const next = document.querySelector(`#screen-${name}`);
+      if (!next) return;
+      next.classList.add("active");
+      state.screen = name;
+      document.body.dataset.screen = name;
+      if (name === "home") resizeCanvases();
+      if (name === "arena") {
+        requestAnimationFrame(() => { resizeCanvases(); arenaCanvas.focus({ preventScroll: true }); });
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function openGuide() {
+      state.guideReturnScreen = state.screen === "arena" ? "arena" : "home";
+      showScreen("guide");
+    }
+    function closeGuide() {
+      const destination = state.guideReturnScreen === "arena" && state.session && !state.session.finished ? "arena" : "home";
+      showScreen(destination);
+      if (destination === "arena" && state.currentControl === "hand") {
+        initCamera().then(ok => { if (!ok) setControlMode("mouse", false); });
+      }
+    }
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.add("open");
+      const focusTarget = modal.querySelector("input,select,button");
+      if (focusTarget) setTimeout(() => focusTarget.focus(), 30);
+    }
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove("open");
+    }
+
+    function initSettingsUI() {
+      $("#playerName").value = readStorage(STORAGE.name, "") || "";
+      $("#homeHighScore").textContent = highScore.toLocaleString("id-ID");
+      $("#modalControl").value = settings.control;
+      $("#modalSensitivity").value = settings.sensitivity;
+      $("#modalCooldown").value = String(settings.cooldownMs);
+      $("#modalSound").checked = settings.sound;
+      $("#modalSensitivityValue").textContent = `${Math.round(settings.sensitivity * 100)}%`;
+      populateTeacherSettings();
+      if (readStorage(STORAGE.bank, null) === null) writeStorage(STORAGE.bank, bank);
+      setCameraStatus("Webcam belum diaktifkan");
+    }
+    function populateTeacherSettings() {
+      $("#settingDuration").value = settings.durationMinutes;
+      $("#settingQuestionCount").value = settings.questionsPerMission;
+      $("#settingAttempts").value = settings.attempts;
+      $("#settingCooldown").value = settings.cooldownMs;
+      $("#settingFeedbackDelay").value = settings.feedbackDelay;
+      $("#settingSensitivity").value = settings.sensitivity;
+      $("#settingControl").value = settings.control;
+      $("#settingSound").checked = settings.sound;
+      $("#sensitivityValue").textContent = `${Math.round(settings.sensitivity * 100)}%`;
+    }
+    function openSettings() {
+      $("#modalControl").value = settings.control;
+      $("#modalSensitivity").value = settings.sensitivity;
+      $("#modalCooldown").value = String(settings.cooldownMs);
+      $("#modalSound").checked = settings.sound;
+      $("#modalSensitivityValue").textContent = `${Math.round(settings.sensitivity * 100)}%`;
+      openModal("settingsModal");
+    }
+
+    function initCamera() {
+      if (state.cameraRequest) return state.cameraRequest;
+      state.cameraRequest = initCameraRequest().finally(() => { state.cameraRequest = null; });
+      return state.cameraRequest;
+    }
+    async function initCameraRequest() {
+      if (state.modelFailed && state.hands) {
+        try { state.hands.close(); } catch (error) {}
+        state.hands = null;
+        state.modelFailed = false;
+      }
+      const streamIsLive = state.stream && state.stream.getTracks().some(track => track.readyState === "live");
+      if (streamIsLive && state.hands) return true;
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
+        setCameraStatus("Browser tidak mendukung akses webcam", "warn");
+        setModelStatus("Gunakan Chrome/Edge terbaru dan jalankan melalui HTTPS atau localhost");
+        return false;
+      }
+      setCameraStatus("Meminta izin kamera...", "warn");
+      try {
+        if (!streamIsLive) {
+          state.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } } });
+          cameraSource.srcObject = state.stream;
+          $("#guideVideo").srcObject = state.stream;
+          $("#gameVideo").srcObject = state.stream;
+          await Promise.all([cameraSource.play().catch(() => {}), $("#guideVideo").play().catch(() => {}), $("#gameVideo").play().catch(() => {})]);
+          updateVideoShells(true);
+          setCameraStatus("Kamera aktif di perangkat ini", "live");
+        }
+        const modelReady = state.hands ? true : await initHandTracking();
+        if (!modelReady || !state.hands) {
+          setCameraStatus("Kamera aktif, tetapi model belum siap", "warn");
+          return false;
+        }
+        state.cameraOk = true;
+        runHandTrackingLoop();
+        return true;
+      } catch (error) {
+        const name = error && error.name ? error.name : "";
+        let message = "Kamera tidak dapat diaktifkan. Kamu tetap bisa bermain dengan mouse.";
+        if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") message = "Izin kamera ditolak. Izinkan kamera di browser atau gunakan mouse.";
+        else if (name === "NotFoundError" || name === "DevicesNotFoundError") message = "Webcam tidak ditemukan. Gunakan mouse dan keyboard.";
+        else if (name === "NotReadableError" || name === "TrackStartError") message = "Webcam sedang digunakan aplikasi lain. Tutup aplikasi itu lalu coba lagi.";
+        else if (window.isSecureContext === false) message = "Akses kamera memerlukan HTTPS atau localhost. Buka aplikasi melalui localhost, bukan file://.";
+        state.cameraOk = false;
+        if (state.stream) cleanupCamera();
+        setCameraStatus(message, "warn");
+        setModelStatus(message);
+        return false;
+      }
+    }
+    async function initHandTracking() {
+      if (state.hands) return true;
+      if (typeof window.Hands !== "function") {
+        setModelStatus("MediaPipe Hands gagal dimuat dari CDN. Periksa koneksi internet lalu coba lagi.");
+        state.modelFailed = true;
+        return false;
+      }
+      setModelStatus("Memuat model MediaPipe Hands...");
+      try {
+        state.hands = new window.Hands({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}` });
+        state.hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: .55, minTrackingConfidence: .5 });
+        state.hands.onResults(handleHandResults);
+        state.cameraOk = true;
+        state.modelFailed = false;
+        setModelStatus("Model siap; menunggu hasil deteksi");
+        return true;
+      } catch (error) {
+        state.modelFailed = true;
+        setModelStatus("Model gagal disiapkan. Periksa koneksi CDN lalu tekan Coba lagi.");
+        return false;
+      }
+    }
+    function runHandTrackingLoop() {
+      if (state.cameraFrame) cancelAnimationFrame(state.cameraFrame);
+      const step = async timestamp => {
+        if (!state.stream || !state.hands) { state.cameraFrame = 0; return; }
+        state.cameraFrame = requestAnimationFrame(step);
+        const wantsTracking = state.screen === "guide" || (state.screen === "arena" && state.currentControl === "hand");
+        if (!wantsTracking || state.cameraBusy || cameraSource.readyState < 2 || timestamp - state.lastCameraFrame < 90) return;
+        state.lastCameraFrame = timestamp;
+        state.cameraBusy = true;
+        try {
+          await state.hands.send({ image: cameraSource });
+          if (state.modelState !== "Model siap; deteksi aktif") setModelStatus("Model siap; deteksi aktif");
+        } catch (error) {
+          state.modelFailed = true;
+          state.cameraOk = false;
+          setModelStatus("Model gagal dimuat atau CDN terputus. Coba lagi atau gunakan mouse.");
+          if (state.cameraFrame) cancelAnimationFrame(state.cameraFrame);
+          state.cameraFrame = 0;
+          if (state.screen === "arena") setControlMode("mouse", false);
+        } finally {
+          state.cameraBusy = false;
+        }
+      };
+      state.cameraFrame = requestAnimationFrame(step);
+    }
+    function cleanupCamera() {
+      if (state.cameraFrame) cancelAnimationFrame(state.cameraFrame);
+      state.cameraFrame = 0;
+      state.cameraBusy = false;
+      if (state.stream) state.stream.getTracks().forEach(track => track.stop());
+      state.stream = null;
+      [cameraSource, $("#guideVideo"), $("#gameVideo")].forEach(video => { try { video.pause(); video.srcObject = null; } catch (error) {} });
+      updateVideoShells(false);
+      state.cameraOk = false;
+      state.handDetected = false;
+      state.lastGesture = "";
+      state.pointerSmooth = null;
+      state.pauseHandSince = 0;
+      state.pauseHandTriggered = false;
+      setCameraStatus("Kamera mati");
+      setModelStatus("Menunggu izin kamera");
+      setHandStatus(false);
+    }
+    function startCalibration() {
+      if (!state.stream) { showToast("Aktifkan kamera terlebih dahulu untuk kalibrasi."); return; }
+      state.calibration = { minX: 1, maxX: 0, minY: 1, maxY: 0, startedAt: performance.now() };
+      $("#calibrationProgress").textContent = "Gerakkan telunjuk ke beberapa sisi... 0%";
+      showToast("Kalibrasi dimulai. Gerakkan telunjuk dengan nyaman ke sisi kiri, kanan, atas, dan bawah.");
+    }
+    function finishCalibration() {
+      if (!state.calibration) return;
+      const c = state.calibration;
+      const width = c.maxX - c.minX;
+      const height = c.maxY - c.minY;
+      if (width > .16 && height > .16) {
+        const paddingX = width * .06;
+        const paddingY = height * .06;
+        state.calibrationBounds = { minX: clamp(c.minX - paddingX, 0, 1), maxX: clamp(c.maxX + paddingX, 0, 1), minY: clamp(c.minY - paddingY, 0, 1), maxY: clamp(c.maxY + paddingY, 0, 1) };
+        settings.calibrationBounds = state.calibrationBounds;
+        saveSettings();
+        $("#calibrationProgress").textContent = "Kalibrasi tersimpan";
+        showToast("Kalibrasi selesai. Area gerak bidikan disesuaikan dengan jangkauan tanganmu.");
+      } else {
+        $("#calibrationProgress").textContent = "Jangkauan belum cukup; coba lagi";
+        showToast("Kalibrasi belum menangkap jangkauan yang cukup. Coba lagi dan gerakkan telunjuk sedikit lebih lebar.");
+      }
+      state.calibration = null;
+    }
+    function distance2(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+    function jointAngle(a, b, c) {
+      const ab = { x: a.x - b.x, y: a.y - b.y };
+      const cb = { x: c.x - b.x, y: c.y - b.y };
+      const dot = ab.x * cb.x + ab.y * cb.y;
+      const den = Math.max(.00001, Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y));
+      return Math.acos(clamp(dot / den, -1, 1)) * 180 / Math.PI;
+    }
+    /**
+     * Kenampakan tiap jari dinilai dari SUDUT sendi (bukan sekadar posisi
+     * vertikal), sehingga lebih tahan terhadap tangan yang menghadap kamera
+     * dari berbagai sudut.
+     *
+     * Aturan gestur:
+     *  - "aim"   : telunjuk terangkat (jari lain terlipat). HANYA mengarahkan
+     *              bidikan. Tidak menembak dan tidak mengambil kartu.
+     *  - "web"   : telunjuk + kelingking terangkat, jari tengah & manis lipat.
+     *              Ini SATU-SATUNYA gestur untuk menembakkan jaring.
+     *  - "grab"  : kepalan ringan atau ujung ibu jari mendekati ujung telunjuk.
+     *  - "open"  : telapak terbuka (dipakai untuk melepas kartu dan jeda).
+     */
+    function detectGesture(landmarks) {
+      const extended = [
+        jointAngle(landmarks[5], landmarks[6], landmarks[8]) > 150,    // telunjuk
+        jointAngle(landmarks[9], landmarks[10], landmarks[12]) > 150,  // jari tengah
+        jointAngle(landmarks[13], landmarks[14], landmarks[16]) > 150, // jari manis
+        jointAngle(landmarks[17], landmarks[18], landmarks[20]) > 140  // kelingking
+      ];
+      const palmScale = Math.max(.001, distance2(landmarks[0], landmarks[9]));
+      const thumbIndexRatio = distance2(landmarks[4], landmarks[8]) / palmScale;
+      const pinch = thumbIndexRatio < .36;
+      const fist = extended.every(value => !value);
+      const web = extended[0] && extended[3] && !extended[1] && !extended[2];
+      const open = extended.every(Boolean);
+      if (web) return "web";
+      if (pinch || fist) return "grab";
+      if (open) return "open";
+      return "aim";
+    }
+    /**
+     * Konfirmasi gestur: gestur non-aim harus terbaca sama selama dua frame
+     * berturut-turut sebelum dijalankan. Ini mencegah telunjuk yang sesaat
+     * salah terbaca sebagai gestur jaring sehingga memicu tembakan tak diinginkan.
+     */
+    function confirmGesture(gesture) {
+      if (gesture === "aim" || gesture === "lost") {
+        state.gestureBuffer = [];
+        return false;
+      }
+      state.gestureBuffer.push(gesture);
+      if (state.gestureBuffer.length > 2) state.gestureBuffer.shift();
+      return state.gestureBuffer.length === 2
+        && state.gestureBuffer[0] === gesture
+        && state.gestureBuffer[1] === gesture;
+    }
+    function handleHandResults(results) {
+      const landmarks = results.multiHandLandmarks && results.multiHandLandmarks[0];
+      if (!landmarks) {
+        setHandStatus(false, "lost");
+        state.lastGesture = "";
+        state.gestureBuffer = [];
+        state.pauseHandSince = 0;
+        state.pauseHandTriggered = false;
+        if (state.grabbedTarget && state.grabbedTarget.manual) {
+          state.grabbedTarget = null;
+          state.questionLocked = false;
+        }
+        if (state.calibration) {
+          updateCalibrationStatus();
+          if (performance.now() - state.calibration.startedAt >= 4000) finishCalibration();
+        }
+        return;
+      }
+      const rawX = 1 - landmarks[8].x;
+      const rawY = landmarks[8].y;
+      if (state.calibration) {
+        state.calibration.minX = Math.min(state.calibration.minX, rawX);
+        state.calibration.maxX = Math.max(state.calibration.maxX, rawX);
+        state.calibration.minY = Math.min(state.calibration.minY, rawY);
+        state.calibration.maxY = Math.max(state.calibration.maxY, rawY);
+        updateCalibrationStatus();
+        if (performance.now() - state.calibration.startedAt >= 4000) finishCalibration();
+      }
+      const point = mapPointer(rawX, rawY);
+      const smoothing = .22 + settings.sensitivity * .34;
+      if (!state.pointerSmooth) state.pointerSmooth = point;
+      state.pointerSmooth.x += (point.x - state.pointerSmooth.x) * smoothing;
+      state.pointerSmooth.y += (point.y - state.pointerSmooth.y) * smoothing;
+      state.pointer = { ...state.pointerSmooth };
+      const gesture = detectGesture(landmarks);
+      setHandStatus(true, gesture, state.pointer);
+      if (state.screen === "arena" && !state.session?.paused) processGesture(gesture);
+      state.lastGesture = gesture;
+    }
+    function updateCalibrationStatus() {
+      if (!state.calibration) return;
+      const elapsed = performance.now() - state.calibration.startedAt;
+      const percent = Math.min(100, Math.round(elapsed / 4000 * 100));
+      $("#calibrationProgress").textContent = `Gerakkan telunjuk ke beberapa sisi... ${percent}%`;
+    }
+    function mapPointer(rawX, rawY) {
+      let x = rawX;
+      let y = rawY;
+      const bounds = state.calibrationBounds;
+      if (bounds && bounds.maxX - bounds.minX > .1 && bounds.maxY - bounds.minY > .1) {
+        x = (rawX - bounds.minX) / (bounds.maxX - bounds.minX);
+        y = (rawY - bounds.minY) / (bounds.maxY - bounds.minY);
+      }
+      const range = 1.12 - settings.sensitivity * .48;
+      x = (x - .5) / range + .5;
+      y = (y - .5) / range + .5;
+      return { x: clamp(x, .025, .975), y: clamp(y, .035, .965) };
+    }
+    function processGesture(gesture) {
+      // "aim" (telunjuk saja) sengaja tidak punya aksi apa pun: hanya menggerakkan bidikan.
+      if (gesture === "web") {
+        if (confirmGesture("web")) {
+          state.gestureBuffer = [];
+          shootWeb(state.pointer.x * arenaCanvas.clientWidth, state.pointer.y * arenaCanvas.clientHeight, "hand");
+        }
+      } else if (gesture === "grab") {
+        if (confirmGesture("grab") && !state.grabbedTarget && !state.questionLocked) {
+          state.gestureBuffer = [];
+          const index = checkCollision({ x: state.pointer.x * arenaCanvas.clientWidth, y: state.pointer.y * arenaCanvas.clientHeight });
+          if (index !== null) grabTarget(index, "hand", true);
+        }
+      } else {
+        state.gestureBuffer = [];
+      }
+      if (gesture === "open") {
+        if (state.grabbedTarget && state.grabbedTarget.manual) releaseTarget();
+        if (!state.pauseHandSince) state.pauseHandSince = performance.now();
+        const held = performance.now() - state.pauseHandSince;
+        if (held > 1500 && !state.pauseHandTriggered && !state.session?.paused) {
+          state.pauseHandTriggered = true;
+          pauseGame();
+        }
+      } else {
+        state.pauseHandSince = 0;
+        state.pauseHandTriggered = false;
+      }
+    }
+
+    function canvasSize(canvas, ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(1, rect.width);
+      const height = Math.max(1, rect.height);
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const pixelW = Math.round(width * dpr);
+      const pixelH = Math.round(height * dpr);
+      if (canvas.width !== pixelW || canvas.height !== pixelH) {
+        canvas.width = pixelW;
+        canvas.height = pixelH;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { width, height };
+    }
+    function resizeCanvases() {
+      canvasSize(heroCanvas, heroCtx);
+      if (state.screen === "arena") canvasSize(arenaCanvas, arenaCtx);
+    }
+    function roundRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+    function drawWebPattern(ctx, cx, cy, radius, alpha, time) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.sin(time * .0003) * .035);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = "#3d9bbd";
+      ctx.lineWidth = 1;
+      for (let ray = 0; ray < 12; ray++) {
+        const angle = Math.PI * 2 * ray / 12;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        ctx.stroke();
+      }
+      for (let ring = 1; ring <= 5; ring++) {
+        const r = radius * ring / 5;
+        ctx.beginPath();
+        for (let ray = 0; ray <= 24; ray++) {
+          const angle = Math.PI * 2 * ray / 24;
+          const rr = r * (1 + .025 * Math.sin(angle * 6 + time * .001));
+          const px = Math.cos(angle) * rr;
+          const py = Math.sin(angle) * rr;
+          if (ray === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    function drawStar(ctx, x, y, outer, inner, points = 5) {
+      ctx.beginPath();
+      for (let i = 0; i < points * 2; i++) {
+        const radius = i % 2 === 0 ? outer : inner;
+        const angle = -Math.PI / 2 + i * Math.PI / points;
+        const px = x + Math.cos(angle) * radius;
+        const py = y + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+    function drawHero(ctx, x, y, size, time = 0, glow = true) {
+      const bob = Math.sin(time * .002 + x) * size * .018;
+      ctx.save();
+      ctx.translate(x, y + bob);
+      if (glow) {
+        const aura = ctx.createRadialGradient(0, -size * .08, size * .06, 0, -size * .08, size * .72);
+        aura.addColorStop(0, "rgba(72,199,235,.16)");
+        aura.addColorStop(1, "rgba(28,110,152,0)");
+        ctx.fillStyle = aura;
+        ctx.beginPath(); ctx.ellipse(0, -size * .03, size * .69, size * .7, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      const red = ctx.createLinearGradient(-size * .3, -size * .45, size * .38, size * .5);
+      red.addColorStop(0, "#ff6a73"); red.addColorStop(.46, "#ed3948"); red.addColorStop(1, "#9e1e35");
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.strokeStyle = red; ctx.lineWidth = size * .105;
+      ctx.beginPath(); ctx.moveTo(-size * .13, -size * .03); ctx.lineTo(-size * .31, size * .1); ctx.lineTo(-size * .36, size * .32); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(size * .12, -size * .03); ctx.lineTo(size * .34, -size * .12); ctx.lineTo(size * .43, -size * .31); ctx.stroke();
+      ctx.strokeStyle = "#f2f6f8"; ctx.lineWidth = size * .038;
+      ctx.beginPath(); ctx.moveTo(-size * .31, size * .15); ctx.lineTo(-size * .34, size * .23); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(size * .36, -size * .17); ctx.lineTo(size * .4, -size * .25); ctx.stroke();
+      ctx.fillStyle = red;
+      ctx.beginPath(); ctx.moveTo(-size * .19, -size * .13); ctx.lineTo(size * .18, -size * .13); ctx.lineTo(size * .23, size * .21); ctx.lineTo(size * .07, size * .31); ctx.lineTo(-size * .18, size * .22); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#eaf2f5";
+      ctx.beginPath(); ctx.moveTo(-size * .09, -size * .07); ctx.lineTo(size * .08, -size * .07); ctx.lineTo(size * .11, size * .18); ctx.lineTo(-size * .1, size * .18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#d8283c";
+      ctx.beginPath(); ctx.moveTo(-size * .15, size * .22); ctx.lineTo(-size * .02, size * .2); ctx.lineTo(-size * .13, size * .49); ctx.lineTo(-size * .29, size * .54); ctx.lineTo(-size * .24, size * .42); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(size * .05, size * .2); ctx.lineTo(size * .17, size * .21); ctx.lineTo(size * .29, size * .47); ctx.lineTo(size * .2, size * .55); ctx.lineTo(size * .11, size * .43); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#e9f0f3"; ctx.lineWidth = size * .035;
+      ctx.beginPath(); ctx.moveTo(-size * .25, size * .43); ctx.lineTo(-size * .3, size * .52); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(size * .22, size * .44); ctx.lineTo(size * .31, size * .51); ctx.stroke();
+      ctx.fillStyle = red;
+      ctx.beginPath(); ctx.moveTo(-size * .18, -size * .31); ctx.quadraticCurveTo(-size * .23, -size * .49, 0, -size * .5); ctx.quadraticCurveTo(size * .23, -size * .49, size * .18, -size * .3); ctx.lineTo(size * .12, -size * .13); ctx.lineTo(-size * .14, -size * .13); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f4f7f8";
+      ctx.beginPath(); ctx.moveTo(-size * .12, -size * .31); ctx.lineTo(-size * .02, -size * .28); ctx.lineTo(-size * .12, -size * .25); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(size * .12, -size * .31); ctx.lineTo(size * .02, -size * .28); ctx.lineTo(size * .12, -size * .25); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f6d27c";
+      drawStar(ctx, 0, size * .055, size * .07, size * .032, 5); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = size * .009;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath(); ctx.moveTo(-size * .18, -size * .06 + i * size * .07); ctx.lineTo(-size * .1, -size * .02 + i * size * .07); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(size * .18, -size * .06 + i * size * .07); ctx.lineTo(size * .1, -size * .02 + i * size * .07); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    function renderHeroCanvas(time) {
+      const { width: w, height: h } = canvasSize(heroCanvas, heroCtx);
+      const ctx = heroCtx;
+      ctx.clearRect(0, 0, w, h);
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, "#081827"); bg.addColorStop(.56, "#0b1b2b"); bg.addColorStop(1, "#07111c");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      drawWebPattern(ctx, w * .77, h * .48, Math.max(w, h) * .46, .38, time);
+      for (let i = 0; i < 34; i++) {
+        const px = ((i * 139 + time * (.005 + (i % 3) * .001)) % (w + 30)) - 15;
+        const py = (i * 71 + Math.sin(time * .0005 + i) * 14) % h;
+        ctx.fillStyle = i % 5 === 0 ? "rgba(117,220,244,.65)" : "rgba(185,215,228,.32)";
+        ctx.beginPath(); ctx.arc(px, py, i % 7 === 0 ? 1.5 : .8, 0, Math.PI * 2); ctx.fill();
+      }
+      const lineAlpha = .22 + Math.sin(time * .001) * .04;
+      ctx.strokeStyle = `rgba(105,202,230,${lineAlpha})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(w * .56, h * .82); ctx.lineTo(w * .84, h * .3); ctx.lineTo(w, h * .55); ctx.stroke();
+      const heroSize = Math.min(h * .78, w * .28, 340);
+      drawHero(ctx, w * .79, h * .71, heroSize, time, true);
+      ctx.save(); ctx.globalAlpha = .42; ctx.strokeStyle = "rgba(246,248,250,.5)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(w * .7, h * .23); ctx.lineTo(w * .94, h * .23); ctx.stroke(); ctx.restore();
+    }
+    function heroOrigin(w, h) {
+      if (w < 620) return { x: w * .12, y: h * .84, size: Math.min(95, h * .24) };
+      return { x: w * .14, y: h * .57, size: Math.min(h * .52, 170) };
+    }
+    function getAnswerRects(w, h) {
+      if (w < 620) {
+        const margin = Math.max(17, w * .045);
+        const x = margin;
+        const top = 19;
+        const gap = 8;
+        const cardH = Math.min(76, (h * .69 - gap * 3) / 4);
+        return Array.from({ length: 4 }, (_, index) => ({ x, y: top + index * (cardH + gap), w: w - margin * 2, h: cardH }));
+      }
+      const x = w * .335;
+      const areaW = w - x - w * .035;
+      const gapX = 13;
+      const gapY = 13;
+      const cardW = (areaW - gapX) / 2;
+      const cardH = Math.min(134, Math.max(102, h * .27));
+      const startY = (h - cardH * 2 - gapY) / 2;
+      return [
+        { x, y: startY, w: cardW, h: cardH },
+        { x: x + cardW + gapX, y: startY, w: cardW, h: cardH },
+        { x, y: startY + cardH + gapY, w: cardW, h: cardH },
+        { x: x + cardW + gapX, y: startY + cardH + gapY, w: cardW, h: cardH }
+      ];
+    }
+    function wrapLines(ctx, text, maxWidth, maxLines) {
+      const words = String(text).split(/\s+/);
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+        else line = test;
+      }
+      if (line) lines.push(line);
+      if (lines.length > maxLines) {
+        const trimmed = lines.slice(0, maxLines);
+        let last = trimmed[maxLines - 1];
+        while (ctx.measureText(`${last}...`).width > maxWidth && last.length > 3) last = last.slice(0, -4);
+        trimmed[maxLines - 1] = `${last}...`;
+        return trimmed;
+      }
+      return lines;
+    }
+    function drawAnswerCard(ctx, rect, choice, index, pointer, time, isGrabbed = false) {
+      const hovered = pointer.x >= rect.x && pointer.x <= rect.x + rect.w && pointer.y >= rect.y && pointer.y <= rect.y + rect.h;
+      const bob = Math.sin(time * .0018 + index * 1.7) * 1.3;
+      const y = rect.y + bob;
+      ctx.save();
+      ctx.shadowColor = hovered ? "rgba(87,220,244,.3)" : "rgba(0,0,0,.18)";
+      ctx.shadowBlur = hovered ? 20 : 8;
+      const gradient = ctx.createLinearGradient(rect.x, y, rect.x + rect.w, y + rect.h);
+      gradient.addColorStop(0, hovered || isGrabbed ? "rgba(29,78,101,.96)" : "rgba(17,42,61,.94)");
+      gradient.addColorStop(1, "rgba(8,24,39,.96)");
+      roundRect(ctx, rect.x, y, rect.w, rect.h, 12); ctx.fillStyle = gradient; ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = hovered || isGrabbed ? 1.6 : 1;
+      ctx.strokeStyle = hovered || isGrabbed ? "rgba(113,225,247,.9)" : "rgba(141,186,210,.3)";
+      ctx.stroke();
+      ctx.fillStyle = hovered || isGrabbed ? "#73e3f7" : "#f17c87";
+      ctx.beginPath(); ctx.arc(rect.x + 25, y + rect.h / 2, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#06131f"; ctx.font = "800 11px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(String.fromCharCode(65 + index), rect.x + 25, y + rect.h / 2 + .5);
+      ctx.fillStyle = "#edf5f9"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      const fontSize = rect.w < 260 ? 12.5 : rect.w < 330 ? 14 : 15.5;
+      ctx.font = `650 ${fontSize}px system-ui`;
+      const lines = wrapLines(ctx, choice.text, rect.w - 59, rect.h < 78 ? 2 : 3);
+      const lineHeight = fontSize * 1.31;
+      const total = lines.length * lineHeight;
+      lines.forEach((line, lineIndex) => ctx.fillText(line, rect.x + 48, y + rect.h / 2 - total / 2 + lineHeight * lineIndex + lineHeight / 2, rect.w - 59));
+      if (hovered) {
+        ctx.fillStyle = "rgba(141,226,244,.8)"; ctx.font = "700 8px system-ui"; ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+        ctx.fillText("BIDIK", rect.x + rect.w - 10, y + rect.h - 7);
+      }
+      ctx.restore();
+    }
+    function renderArena(time) {
+      const { width: w, height: h } = canvasSize(arenaCanvas, arenaCtx);
+      const ctx = arenaCtx;
+      ctx.clearRect(0, 0, w, h);
+      const bg = ctx.createLinearGradient(0, 0, w * .8, h);
+      bg.addColorStop(0, "#081a2a"); bg.addColorStop(.52, "#0a1d2f"); bg.addColorStop(1, "#071321");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      ctx.save(); ctx.strokeStyle = "rgba(73,139,171,.1)"; ctx.lineWidth = 1;
+      for (let x = 0; x <= w; x += 38) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y <= h; y += 38) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      ctx.restore();
+      drawWebPattern(ctx, w * .91, h * .18, Math.max(w, h) * .34, .25, time);
+      const origin = heroOrigin(w, h);
+      drawHero(ctx, origin.x, origin.y, origin.size, time, true);
+      ctx.save();
+      ctx.strokeStyle = "rgba(250,250,250,.16)"; ctx.setLineDash([4, 7]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(origin.x + origin.size * .42, origin.y - origin.size * .17); ctx.lineTo(w * .34, h * .52); ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+      const rectangles = getAnswerRects(w, h);
+      state.hitboxes = rectangles;
+      const pointer = state.currentControl === "hand" ? { x: state.pointer.x * w, y: state.pointer.y * h } : state.mousePointer;
+      if (state.question && !state.intermission) {
+        rectangles.forEach((rect, index) => {
+          const grabbed = state.grabbedTarget && state.grabbedTarget.index === index;
+          if (grabbed && state.grabbedTarget.manual) return;
+          if (grabbed && !state.grabbedTarget.manual && state.grabbedTarget.progress > .25) return;
+          drawAnswerCard(ctx, rect, state.viewChoices[index] || { text: "" }, index, pointer, time, !!grabbed);
+        });
+      } else {
+        ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "rgba(195,221,235,.6)"; ctx.font = "700 13px system-ui";
+        ctx.fillText(state.intermission ? "ARSIP BERHASIL DIAMANKAN" : "SIAPKAN JARINGMU", w * .58, h * .52); ctx.restore();
+      }
+      if (state.grabbedTarget) drawGrabbedCard(ctx, rectangles, pointer, time);
+      for (const projectile of state.projectiles) drawProjectile(ctx, projectile, origin, time);
+      drawParticles(ctx, time);
+      drawPointer(ctx, pointer, time);
+      if (state.intermission) {
+        ctx.save(); ctx.fillStyle = "rgba(5,14,24,.3)"; ctx.fillRect(0, 0, w, h); ctx.restore();
+      }
+    }
+    function drawGrabbedCard(ctx, rectangles, pointer, time) {
+      const item = state.grabbedTarget;
+      if (!item) return;
+      const rect = rectangles[item.index];
+      if (!rect) return;
+      let x, y, scale;
+      if (item.manual) { x = pointer.x - rect.w / 2; y = pointer.y - rect.h / 2; scale = .88; }
+      else {
+        const t = clamp(item.progress, 0, 1);
+        const startX = rect.x, startY = rect.y;
+        const origin = heroOrigin(arenaCanvas.clientWidth, arenaCanvas.clientHeight);
+        const endX = origin.x - rect.w * .1, endY = origin.y - rect.h * .4;
+        x = startX + (endX - startX) * t;
+        y = startY + (endY - startY) * t;
+        scale = 1 - t * .42;
+      }
+      ctx.save(); ctx.translate(x + rect.w / 2, y + rect.h / 2); ctx.scale(scale, scale);
+      drawAnswerCard(ctx, { x: -rect.w / 2, y: -rect.h / 2, w: rect.w, h: rect.h }, state.viewChoices[item.index], item.index, { x: -1000, y: -1000 }, time, true);
+      ctx.restore();
+    }
+    function drawProjectile(ctx, projectile, origin, time) {
+      const progress = clamp(projectile.progress, 0, 1);
+      const eased = 1 - Math.pow(1 - progress, 2.5);
+      const startX = origin.x + origin.size * .4;
+      const startY = origin.y - origin.size * .18;
+      const dx = projectile.to.x - startX;
+      const dy = projectile.to.y - startY;
+      const x = startX + dx * eased;
+      const y = startY + dy * eased + Math.sin(progress * Math.PI) * -24;
+      ctx.save();
+      ctx.shadowColor = "#76e4f7"; ctx.shadowBlur = 18;
+      ctx.strokeStyle = "rgba(160,246,255,.95)"; ctx.lineWidth = 2.1;
+      ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(x, y); ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#d8fbff"; ctx.beginPath(); ctx.arc(x, y, 4 + Math.sin(time * .03) * .5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(137,232,249,.8)"; ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const angle = Math.PI * 2 * i / 5;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(angle) * 12, y + Math.sin(angle) * 9); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.ellipse(x, y, 12, 9, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+    function drawPointer(ctx, pointer, time) {
+      if (!pointer || !Number.isFinite(pointer.x) || !Number.isFinite(pointer.y)) return;
+      const pulse = 9 + Math.sin(time * .009) * 1.5;
+      ctx.save(); ctx.strokeStyle = "rgba(126,232,250,.95)"; ctx.lineWidth = 1.5; ctx.shadowColor = "#55d7ee"; ctx.shadowBlur = 13;
+      ctx.beginPath(); ctx.arc(pointer.x, pointer.y, pulse, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pointer.x - 14, pointer.y); ctx.lineTo(pointer.x - 5, pointer.y); ctx.moveTo(pointer.x + 5, pointer.y); ctx.lineTo(pointer.x + 14, pointer.y); ctx.moveTo(pointer.x, pointer.y - 14); ctx.lineTo(pointer.x, pointer.y - 5); ctx.moveTo(pointer.x, pointer.y + 5); ctx.lineTo(pointer.x, pointer.y + 14); ctx.stroke();
+      ctx.fillStyle = "#effcff"; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+    function spawnParticles(x, y, color = "#75e4f7", count = 12) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.PI * 2 * i / count + Math.random() * .3;
+        const speed = 35 + Math.random() * 90;
+        state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, born: performance.now(), life: 380 + Math.random() * 240, color, size: 1.4 + Math.random() * 2.7 });
+      }
+    }
+    function drawParticles(ctx, time) {
+      const now = performance.now();
+      state.particles = state.particles.filter(p => now - p.born < p.life);
+      state.particles.forEach(p => {
+        const elapsed = now - p.born;
+        const t = elapsed / p.life;
+        ctx.globalAlpha = 1 - t;
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x + p.vx * t * .32, p.y + p.vy * t * .32, p.size * (1 - t * .55), 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function updateHUD() {
+      const session = state.session;
+      const total = session ? session.totalQuestions : 0;
+      const attempted = state.attempts;
+      const accuracy = attempted ? Math.round(state.correct / attempted * 100) : 0;
+      $("#hudScore").textContent = state.score.toLocaleString("id-ID");
+      $("#hudCorrect").textContent = state.correct;
+      $("#hudWrong").textContent = state.wrong;
+      $("#hudAccuracy").textContent = `${accuracy}%`;
+      $("#hudCombo").textContent = `x${state.combo}`;
+      $("#hudProgress").textContent = `${Math.min(session?.questionsResolved || 0, total)} / ${total}`;
+      $("#hudEnergyFill").style.width = `${state.energy}%`;
+      $("#hudEnergyText").textContent = `${Math.round(state.energy)}%`;
+      if (session) $("#hudTime").textContent = formatClock(session.secondsRemaining);
+    }
+    function updateMissionLabels() {
+      const mission = state.session && state.session.playlists[state.missionIndex];
+      if (!mission) return;
+      const missionId = mission.mission;
+      $("#missionLabel").textContent = `Misi ${missionId} dari 5`;
+      $("#arenaMissionTitle").textContent = MISSION_NAMES[missionId];
+      $("#missionInstruction").textContent = MISSION_HINTS[missionId];
+      $("#questionCountLabel").textContent = `Soal ${state.questionIndex + 1} dari ${mission.ids.length} / total ${state.session.totalQuestions}`;
+    }
+    function formatClock(seconds) {
+      const safe = Math.max(0, Math.ceil(seconds));
+      return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+    }
+    function fisherYates(items) {
+      const copy = items.slice();
+      for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; }
+      return copy;
+    }
+    function buildPlaylists(onlyIds = null) {
+      const playlists = [];
+      if (onlyIds) {
+        for (let mission = 1; mission <= 5; mission++) {
+          const ids = onlyIds.filter(id => bank.some(q => q.id === id && q.mission === mission));
+          if (ids.length) playlists.push({ mission, ids: fisherYates(ids) });
+        }
+      } else {
+        for (let mission = 1; mission <= 5; mission++) {
+          const candidates = fisherYates(bank.filter(q => q.mission === mission));
+          const ids = candidates.slice(0, Math.min(settings.questionsPerMission, candidates.length)).map(q => q.id);
+          if (ids.length) playlists.push({ mission, ids });
+        }
+      }
+      return playlists;
+    }
+    async function startGame(options = {}) {
+      savePlayerName();
+      const name = $("#playerName").value.trim() || "Penjaga Arsip";
+      const playlists = buildPlaylists(options.onlyIds || null);
+      if (!playlists.length) { showToast("Bank soal belum memiliki soal aktif. Tambahkan soal di Mode Guru."); return; }
+      // Reset hanya dilakukan di sini, yaitu saat pemain memulai SESI BARU.
+      // Perpindahan antar misi memakai continueToNextMission()/enterMission()
+      // yang tidak menyentuh skor, sehingga poin tetap berlanjut.
+      state.score = 0; state.correct = 0; state.wrong = 0; state.attempts = 0; state.combo = 0; state.energy = 100;
+      state.currentControl = settings.control;
+      state.projectiles = []; state.grabbedTarget = null; state.particles = []; state.lastShotAt = 0;
+      state.session = {
+        name, playlists, missionIndex: 0, startedAt: Date.now(), secondsRemaining: settings.durationMinutes * 60,
+        totalQuestions: playlists.reduce((sum, item) => sum + item.ids.length, 0), completedMissions: [], awarded: new Set(),
+        missionStats: { correct: 0, wrong: 0, gestureShots: 0, gestureHits: 0 }, wrongIds: new Set(), resolvedIds: new Set(), questionsResolved: 0, finished: false, paused: false, wrongOnly: !!options.onlyIds
+      };
+      state.missionIndex = 0; state.questionIndex = 0; state.finished = false; state.intermission = "";
+      const cameraPromise = state.currentControl === "hand" ? initCamera() : Promise.resolve(false);
+      enterMission(0);
+      showScreen("arena");
+      if (state.currentControl === "hand") {
+        const cameraOk = await cameraPromise;
+        if (!cameraOk) {
+          setControlMode("mouse", false);
+          showToast("Webcam tidak siap. Misi tetap berjalan dengan mouse dan keyboard.");
+        } else setControlMode("hand", false);
+      } else {
+        setControlMode("mouse", false);
+      }
+      updateHUD();
+    }
+    function enterMission(index) {
+      if (!state.session || index >= state.session.playlists.length) return;
+      state.missionIndex = index;
+      state.questionIndex = 0;
+      state.session.missionIndex = index;
+      state.session.missionStats = { correct: 0, wrong: 0, gestureShots: 0, gestureHits: 0 };
+      state.session.missionSnapshot = { score: state.score, correct: state.correct, wrong: state.wrong, attempts: state.attempts, combo: state.combo, wrongIds: Array.from(state.session.wrongIds), resolvedIds: Array.from(state.session.resolvedIds) };
+      state.intermission = "";
+      state.questionLocked = false;
+      updateMissionLabels();
+      loadQuestion();
+    }
+    function loadQuestion() {
+      const playlist = state.session?.playlists[state.missionIndex];
+      if (!playlist) return;
+      if (state.questionIndex >= playlist.ids.length) { completeMission(); return; }
+      const question = bank.find(q => q.id === playlist.ids[state.questionIndex]);
+      if (!question) { state.questionIndex++; loadQuestion(); return; }
+      state.question = question;
+      const choices = question.choices.map((text, originalIndex) => ({ text, correct: originalIndex === question.correct }));
+      state.viewChoices = fisherYates(choices);
+      state.questionAttempts = 0;
+      state.questionLocked = false;
+      state.feedbackMode = "";
+      state.intermission = "";
+      state.grabbedTarget = null;
+      state.projectiles = [];
+      $("#questionTopic").textContent = `${question.topic} / ${question.difficulty}`;
+      $("#questionText").textContent = question.question;
+      $("#questionCountLabel").textContent = `Soal ${state.questionIndex + 1} dari ${playlist.ids.length} / total ${state.session.totalQuestions}`;
+      $("#arenaCanvas").setAttribute("aria-label", `${question.question} Pilihan: ${state.viewChoices.map((choice, index) => `${String.fromCharCode(65 + index)}: ${choice.text}`).join(". ")}. Arahkan bidikan lalu klik atau tekan Spasi.`);
+      $("#accessibleAnswers").textContent = state.viewChoices.map((choice, index) => `${String.fromCharCode(65 + index)}. ${choice.text}`).join(". ");
+      hideFeedback();
+      updateHUD();
+      updateMissionLabels();
+    }
+    function hideFeedback() {
+      $("#arenaFeedback").hidden = true;
+      $("#feedbackRetry").hidden = true;
+      $("#feedbackNext").hidden = true;
+      state.feedbackRemaining = 0;
+      state.feedbackAdvanced = true;
+    }
+    /**
+     * Memulai hitung-mundur auto-lanjut. Pemain tidak perlu menekan tombol
+     * "Lanjut": soal/misi berikutnya dibuka otomatis setelah jeda selesai.
+     * Tombol tetap bisa ditekan lebih awal untuk melewati jeda.
+     * Hitungan memakai sisa detik (bukan timestamp absolut) sehingga ikut
+     * berhenti ketika permainan dijeda.
+     */
+    function startFeedbackCountdown(seconds) {
+      state.feedbackBaseLabel = state.feedbackMode === "retry"
+        ? "Coba lagi"
+        : state.feedbackMode === "mission"
+          ? "Buka misi berikutnya"
+          : state.feedbackMode === "result"
+            ? "Lihat hasil akhir"
+            : "Lanjut ke soal berikutnya";
+      state.feedbackAdvanced = false;
+      state.feedbackRemaining = Math.max(1, seconds);
+      updateFeedbackCountdown(0);
+    }
+    function updateFeedbackCountdown(dt = 0) {
+      if ($("#arenaFeedback").hidden || !state.feedbackMode) return;
+      if (state.feedbackRemaining > 0) {
+        state.feedbackRemaining = Math.max(0, state.feedbackRemaining - dt / 1000);
+      }
+      const remaining = state.feedbackRemaining;
+      const label = `${state.feedbackBaseLabel} (${remaining.toFixed(1)}s)`;
+      if (state.feedbackMode === "retry") $("#feedbackRetry").textContent = label;
+      else $("#feedbackNext").textContent = label;
+      if (remaining <= 0 && !state.feedbackAdvanced) {
+        state.feedbackAdvanced = true;
+        state.feedbackRemaining = 0;
+        advanceAfterFeedback();
+      }
+    }
+    function showFeedback(title, copy, type, action) {
+      $("#arenaFeedback").hidden = false;
+      $("#feedbackTitle").textContent = title;
+      $("#feedbackTitle").className = `feedback-title ${type}`;
+      $("#feedbackCopy").textContent = copy;
+      $("#feedbackSource").textContent = state.question?.source ? `Catatan verifikasi: ${state.question.source}` : "";
+      $("#feedbackRetry").hidden = action !== "retry";
+      $("#feedbackNext").hidden = action === "retry";
+      state.feedbackMode = action;
+      startFeedbackCountdown(settings.feedbackDelay);
+      // Panel umpan balik berada di atas arena. Pastikan selalu terlihat
+      // tanpa membuat pemain harus menggulir halaman secara manual.
+      requestAnimationFrame(() => {
+        const panel = $("#arenaFeedback");
+        const rect = panel.getBoundingClientRect();
+        if (rect.bottom > window.innerHeight - 8 || rect.top < 4) {
+          panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+    }
+    function submitAnswer(displayIndex, source = "mouse") {
+      if (!state.question || state.questionLocked || state.intermission || !state.viewChoices[displayIndex]) return;
+      state.questionLocked = true;
+      state.questionAttempts++;
+      state.attempts++;
+      const correct = !!state.viewChoices[displayIndex].correct;
+      if (correct) {
+        state.session.resolvedIds.add(state.question.id);
+        state.session.questionsResolved = state.session.resolvedIds.size;
+        state.correct++;
+        state.combo++;
+        state.score += 100;
+        if (state.combo > 0 && state.combo % 3 === 0) {
+          state.score += 25;
+          state.session.lastComboBonus = true;
+        } else state.session.lastComboBonus = false;
+        state.session.missionStats.correct++;
+        const rect = state.hitboxes[displayIndex];
+        if (rect) spawnParticles(rect.x + rect.w / 2, rect.y + rect.h / 2, "#87ecc0", 18);
+        if (source === "hand") playTone(680, .12, "sine"); else playTone(560, .1, "sine");
+        const comboCopy = state.combo % 3 === 0 ? " Combo bonus +25!" : "";
+        showFeedback("TEPAT! ARSIP SEJARAH BERHASIL DIAMANKAN!", `${state.question.explanation}${comboCopy} +100 poin.`, "good", "next");
+      } else {
+        state.wrong++;
+        state.combo = 0;
+        state.session.missionStats.wrong++;
+        state.session.wrongIds.add(state.question.id);
+        state.session.lastComboBonus = false;
+        playTone(210, .15, "triangle");
+        const canRetry = state.questionAttempts < settings.attempts;
+        if (!canRetry) {
+          state.session.resolvedIds.add(state.question.id);
+          state.session.questionsResolved = state.session.resolvedIds.size;
+        }
+        const message = canRetry ? `Belum tepat, coba lagi. Petunjuk: ${state.question.explanation}` : `Kesempatan soal ini selesai. ${state.question.explanation}`;
+        showFeedback(canRetry ? "BELUM TEPAT, COBA LAGI!" : "ARSIP TETAP MENYIMPAN PELAJARAN", message, "bad", canRetry ? "retry" : "next");
+      }
+      updateHUD();
+    }
+    function completeMission() {
+      const playlist = state.session?.playlists[state.missionIndex];
+      if (!playlist || state.intermission) return;
+      const key = playlist.mission;
+      if (!state.session.awarded.has(key)) {
+        state.session.awarded.add(key);
+        const stats = state.session.missionStats;
+        const totalAnswers = stats.correct + stats.wrong;
+        const precision = stats.gestureShots > 0 ? Math.round(stats.gestureHits / stats.gestureShots * 100) : (totalAnswers ? Math.round(stats.correct / totalAnswers * 100) : 0);
+        const bonus = clamp(precision, 0, 100);
+        state.score += 200 + bonus;
+        state.session.missionReward = { mission: key, completion: 200, precision: bonus };
+        state.session.completedMissions.push(key);
+        playTone(760, .2, "sine");
+      }
+      const final = state.missionIndex >= state.session.playlists.length - 1;
+      state.intermission = final ? "final" : "mission";
+      state.questionLocked = true;
+      const reward = state.session.missionReward;
+      const scoreCopy = state.score.toLocaleString("id-ID");
+      const text = final
+        ? `Misi terselesaikan. Bonus misi +${reward.completion} dan bonus presisi +${reward.precision}.`
+        : `Misi terselesaikan. Bonus misi +${reward.completion} dan bonus presisi +${reward.precision}. Skor ${scoreCopy} poin berlanjut ke misi berikutnya.`;
+      showFeedback(final ? "ARSIP KEMERDEKAAN TERJAGA!" : "MISI BERHASIL!", text, "good", final ? "result" : "mission");
+      updateHUD();
+    }
+    /**
+     * Lanjut ke misi berikutnya.
+     * PENTING: fungsi ini sengaja TIDAK menyentuh state.score, state.correct,
+     * state.wrong, state.attempts, maupun state.combo. Skor yang sudah
+     * diperoleh pemain harus berlanjut, bukan dimulai dari nol lagi.
+     * Hanya statistik khusus misi (missionStats) yang direset oleh enterMission().
+     */
+    function continueToNextMission() {
+      if (!state.session) return;
+      const nextIndex = state.missionIndex + 1;
+      if (nextIndex >= state.session.playlists.length) {
+        finishGame("complete");
+        return;
+      }
+      enterMission(nextIndex);
+      showToast(`Misi ${state.session.playlists[nextIndex].mission} dimulai. Skor ${state.score.toLocaleString("id-ID")} poin dan combo kamu berlanjut.`);
+    }
+    function advanceAfterFeedback() {
+      if (state.feedbackMode === "retry") {
+        state.questionLocked = false;
+        state.feedbackMode = "";
+        hideFeedback();
+        state.projectiles = [];
+        return;
+      }
+      if (state.feedbackMode === "mission") { continueToNextMission(); return; }
+      if (state.feedbackMode === "result") { finishGame("complete"); return; }
+      if (state.feedbackMode === "next") {
+        state.questionIndex++;
+        loadQuestion();
+      }
+    }
+    function checkCollision(point) {
+      for (let i = 0; i < state.hitboxes.length; i++) {
+        const rect = state.hitboxes[i];
+        if (point.x >= rect.x && point.x <= rect.x + rect.w && point.y >= rect.y && point.y <= rect.y + rect.h) return i;
+      }
+      return null;
+    }
+    function shootWeb(x, y, source = "mouse") {
+      if (!state.session || state.session.paused || state.questionLocked || state.intermission) return;
+      const now = performance.now();
+      if (now - state.lastShotAt < settings.cooldownMs || state.projectiles.length > 0 || state.grabbedTarget) return;
+      state.lastShotAt = now;
+      state.energy = Math.max(0, state.energy - 17);
+      if (source === "hand") state.session.missionStats.gestureShots++;
+      const w = arenaCanvas.clientWidth;
+      const h = arenaCanvas.clientHeight;
+      const targetX = clamp(x, 0, w);
+      const targetY = clamp(y, 0, h);
+      state.projectiles.push({ to: { x: targetX, y: targetY }, progress: 0, duration: 390 + Math.random() * 110, source });
+      playTone(380, .07, "triangle");
+    }
+    function grabTarget(index, source = "hand", manual = false) {
+      if (state.grabbedTarget || state.questionLocked || !state.viewChoices[index]) return;
+      state.grabbedTarget = { index, source, manual, progress: 0, born: performance.now() };
+      if (manual) {
+        state.questionLocked = true;
+        playTone(510, .08, "sine");
+      } else {
+        if (source === "hand") state.session.missionStats.gestureHits++;
+        playTone(600, .08, "sine");
+      }
+    }
+    function releaseTarget() {
+      if (!state.grabbedTarget || !state.grabbedTarget.manual) return;
+      const index = state.grabbedTarget.index;
+      const source = state.grabbedTarget.source;
+      state.grabbedTarget = null;
+      state.questionLocked = false;
+      submitAnswer(index, source);
+      spawnParticles(state.pointer.x * arenaCanvas.clientWidth, state.pointer.y * arenaCanvas.clientHeight, "#78e0f4", 10);
+    }
+    function updateGame(dt) {
+      if (!state.session) return;
+      if (!state.session.paused && !state.session.finished) {
+        state.session.secondsRemaining = Math.max(0, state.session.secondsRemaining - dt / 1000);
+        if (state.session.secondsRemaining <= 0) { finishGame("time"); return; }
+      state.energy = Math.min(100, state.energy + dt * .012);
+      updateFeedbackCountdown(dt);
+      state.projectiles = state.projectiles.filter(projectile => {
+          projectile.progress += dt / projectile.duration;
+          if (projectile.progress < 1) return true;
+          const targetIndex = checkCollision(projectile.to);
+          if (targetIndex !== null && !state.questionLocked) {
+            grabTarget(targetIndex, projectile.source, false);
+          } else {
+            spawnParticles(projectile.to.x, projectile.to.y, "#79d9ef", 6);
+          }
+          return false;
+        });
+        if (state.grabbedTarget && !state.grabbedTarget.manual) {
+          state.grabbedTarget.progress += dt / 440;
+          if (state.grabbedTarget.progress >= 1) {
+            const index = state.grabbedTarget.index;
+            const source = state.grabbedTarget.source;
+            state.grabbedTarget = null;
+            submitAnswer(index, source);
+          }
+        }
+      }
+      updateHUD();
+    }
+    function restartCurrentMission() {
+      if (!state.session || !confirm("Ulangi misi ini? Skor dan jawaban pada misi ini akan diulang.")) return;
+      const snapshot = state.session.missionSnapshot;
+      if (snapshot) {
+        state.score = snapshot.score; state.correct = snapshot.correct; state.wrong = snapshot.wrong; state.attempts = snapshot.attempts; state.combo = snapshot.combo;
+        state.session.wrongIds = new Set(snapshot.wrongIds);
+        state.session.resolvedIds = new Set(snapshot.resolvedIds || []);
+        state.session.questionsResolved = state.session.resolvedIds.size;
+      }
+      state.session.awarded.delete(state.session.playlists[state.missionIndex].mission);
+      state.session.completedMissions = state.session.completedMissions.filter(id => id !== state.session.playlists[state.missionIndex].mission);
+      state.session.missionReward = null;
+      state.session.missionStats = { correct: 0, wrong: 0, gestureShots: 0, gestureHits: 0 };
+      state.questionIndex = 0; state.questionLocked = false; state.intermission = ""; state.projectiles = []; state.grabbedTarget = null;
+      hideFeedback(); loadQuestion(); updateHUD();
+      if (state.session.paused) resumeGame();
+    }
+    function pauseGame() {
+      if (!state.session || state.session.finished || state.session.paused) return;
+      state.session.paused = true;
+      $("#pauseOverlay").classList.add("open");
+      $("#resumeButton").focus({ preventScroll: true });
+    }
+    function resumeGame() {
+      if (!state.session) return;
+      state.session.paused = false;
+      $("#pauseOverlay").classList.remove("open");
+      arenaCanvas.focus({ preventScroll: true });
+    }
+    function updateControlButton() {
+      $("#controlToggle").textContent = `Kontrol: ${state.currentControl === "hand" ? "Tangan" : "Mouse"}`;
+      $("#gamePointerState").textContent = state.currentControl === "hand" ? (state.handDetected ? `${Math.round(state.pointer.x * 100)}% x ${Math.round(state.pointer.y * 100)}%` : "Menunggu tangan") : "Mouse";
+    }
+    function setControlMode(mode, notify = true) {
+      state.currentControl = mode === "hand" ? "hand" : "mouse";
+      updateControlButton();
+      if (state.currentControl === "hand" && !state.stream && notify) {
+        initCamera().then(ok => { if (!ok) setControlMode("mouse", false); });
+      }
+      if (notify) showToast(state.currentControl === "hand" ? "Kontrol tangan dipilih. Arahkan telunjuk ke arena." : "Kontrol mouse dipilih. Klik kartu atau gunakan tombol 1-4.");
+    }
+    async function toggleControl() {
+      if (state.currentControl === "hand") { setControlMode("mouse"); return; }
+      const ok = await initCamera();
+      if (ok) setControlMode("hand");
+      else setControlMode("mouse", false);
+    }
+    function finishGame(reason) {
+      if (!state.session || state.session.finished) return;
+      state.session.finished = true;
+      state.finished = true;
+      state.lastFailedIds = Array.from(state.session.wrongIds);
+      const totalAttempted = Math.max(0, state.attempts);
+      const accuracy = totalAttempted ? Math.round(state.correct / totalAttempted * 100) : 0;
+      const elapsed = Math.max(0, settings.durationMinutes * 60 - state.session.secondsRemaining);
+      const name = state.session.name;
+      const record = { name, score: state.score, accuracy, correct: state.correct, wrong: state.wrong, seconds: Math.round(elapsed), completedMissions: state.session.completedMissions.slice(), date: new Date().toISOString() };
+      gameHistory.unshift(record);
+      gameHistory = gameHistory.slice(0, 20);
+      writeStorage(STORAGE.history, gameHistory);
+      if (state.score > highScore) {
+        highScore = state.score;
+        writeStorage(STORAGE.high, String(highScore));
+      }
+      $("#homeHighScore").textContent = highScore.toLocaleString("id-ID");
+      const rank = accuracy >= 90 ? "Penjaga Arsip Kemerdekaan" : accuracy >= 80 ? "Pahlawan Sejarah" : accuracy >= 70 ? "Pejuang Muda" : "Calon Pahlawan, Ayo Berlatih Lagi";
+      $("#resultRank").textContent = rank;
+      $("#resultScore").textContent = state.score.toLocaleString("id-ID");
+      $("#resultAccuracy").textContent = `${accuracy}%`;
+      $("#resultCorrect").textContent = state.correct;
+      $("#resultWrong").textContent = state.wrong;
+      $("#resultTime").textContent = formatClock(elapsed);
+      $("#resultGreeting").textContent = reason === "time" ? `Waktu misi selesai, ${name}. Setiap jawaban telah menjadi bekal belajar.` : `Terima kasih sudah menjaga arsip perjuangan, ${name}.`;
+      $("#resultMissionCount").textContent = `Misi selesai: ${state.session.completedMissions.length} dari ${state.session.playlists.length}. Skor tertinggi tersimpan di perangkat ini.`;
+      const review = $("#reviewTopics");
+      review.replaceChildren();
+      const reviewQuestions = bank.filter(q => state.lastFailedIds.includes(q.id));
+      if (reviewQuestions.length) {
+        const uniqueTopics = [...new Set(reviewQuestions.map(q => q.topic))];
+        uniqueTopics.forEach(topic => { const li = document.createElement("li"); li.textContent = `${topic} - buka materi ringkas atau ulangi soal terkait.`; review.appendChild(li); });
+      } else {
+        const li = document.createElement("li"); li.textContent = "Tidak ada soal yang perlu diulang. Coba jelaskan satu fakta sejarah kepada temanmu."; review.appendChild(li);
+      }
+      $("#reviewWrongButton").disabled = state.lastFailedIds.length === 0;
+      $("#pauseOverlay").classList.remove("open");
+      hideFeedback();
+      cleanupCamera();
+      showScreen("results");
+    }
+
+    let audioReady = false;
+    function playTone(frequency, duration, wave = "sine") {
+      if (!settings.sound) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!state.soundContext) state.soundContext = new AudioContextClass();
+        if (state.soundContext.state === "suspended") state.soundContext.resume();
+        const ctx = state.soundContext;
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = wave;
+        oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(Math.max(80, frequency * .72), ctx.currentTime + duration);
+        gain.gain.setValueAtTime(.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.035, ctx.currentTime + .012);
+        gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration);
+        oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(); oscillator.stop(ctx.currentTime + duration + .02);
+        audioReady = true;
+      } catch (error) { /* Audio is optional; the game remains playable without it. */ }
+    }
+    function toggleSound() {
+      settings.sound = !settings.sound;
+      saveSettings();
+      $("#arenaMuteButton").querySelector("span").textContent = settings.sound ? "SFX" : "MUTE";
+      $("#arenaMuteButton").setAttribute("aria-label", settings.sound ? "Matikan suara" : "Aktifkan suara");
+      $("#settingSound").checked = settings.sound;
+      $("#modalSound").checked = settings.sound;
+      showToast(settings.sound ? "Efek suara aktif." : "Efek suara dimatikan.");
+      if (settings.sound) playTone(500, .08);
+    }
+
+    function renderBankList() {
+      const list = $("#teacherQuestionList");
+      if (!list) return;
+      list.replaceChildren();
+      $("#bankCount").textContent = `(${bank.length})`;
+      const ordered = bank.slice().sort((a, b) => a.mission - b.mission || a.id.localeCompare(b.id, "id"));
+      if (!ordered.length) {
+        const empty = document.createElement("p"); empty.className = "storage-note"; empty.textContent = "Belum ada soal. Tambahkan soal dari formulir."; list.appendChild(empty); return;
+      }
+      ordered.forEach(question => {
+        const row = document.createElement("article"); row.className = "question-row";
+        const copy = document.createElement("div");
+        const meta = document.createElement("p"); meta.textContent = `${question.id} | Misi ${question.mission} | ${question.topic} | ${question.difficulty}`;
+        const prompt = document.createElement("h3"); prompt.textContent = question.question;
+        const note = document.createElement("p"); note.textContent = `Kunci ${String.fromCharCode(65 + question.correct)} | ${question.source}`;
+        copy.append(meta, prompt, note);
+        const actions = document.createElement("div"); actions.className = "question-row-actions";
+        const edit = document.createElement("button"); edit.type = "button"; edit.className = "button button-secondary button-small"; edit.textContent = "Edit"; edit.dataset.editQuestion = question.id;
+        const remove = document.createElement("button"); remove.type = "button"; remove.className = "button button-quiet button-small"; remove.textContent = "Hapus"; remove.dataset.deleteQuestion = question.id;
+        actions.append(edit, remove); row.append(copy, actions); list.appendChild(row);
+      });
+    }
+    function clearQuestionForm() {
+      $("#questionForm").reset();
+      state.teacherEditId = null;
+      $("#teacherQuestionId").value = nextQuestionId();
+      $("#questionFormTitle").textContent = "Tambah soal";
+      $("#saveQuestionButton").textContent = "Simpan soal";
+    }
+    function nextQuestionId() {
+      let max = 0;
+      bank.forEach(q => { const match = q.id.match(/(\d+)/); if (match) max = Math.max(max, Number(match[1])); });
+      return `SH-${String(max + 1).padStart(2, "0")}`;
+    }
+    function fillQuestionForm(question) {
+      state.teacherEditId = question.id;
+      $("#teacherQuestionId").value = question.id;
+      $("#teacherMission").value = String(question.mission);
+      $("#teacherTopic").value = question.topic;
+      $("#teacherPrompt").value = question.question;
+      question.choices.forEach((choice, index) => { $(`#choice${index}`).value = choice; });
+      $("#teacherCorrect").value = String(question.correct);
+      $("#teacherDifficulty").value = question.difficulty;
+      $("#teacherExplanation").value = question.explanation;
+      $("#teacherSource").value = question.source;
+      $("#questionFormTitle").textContent = `Edit soal ${question.id}`;
+      $("#saveQuestionButton").textContent = "Simpan perubahan";
+      $("#questionForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function handleQuestionSave(event) {
+      event.preventDefault();
+      const raw = {
+        id: $("#teacherQuestionId").value,
+        mission: Number($("#teacherMission").value),
+        topic: $("#teacherTopic").value,
+        question: $("#teacherPrompt").value,
+        choices: [0, 1, 2, 3].map(index => $(`#choice${index}`).value),
+        correct: Number($("#teacherCorrect").value),
+        difficulty: $("#teacherDifficulty").value,
+        explanation: $("#teacherExplanation").value,
+        source: $("#teacherSource").value
+      };
+      const question = normalizeQuestion(raw);
+      if (!question) { showToast("Periksa kembali ID, materi, teks, empat pilihan, kunci, pembahasan, dan sumber."); return; }
+      const existing = bank.findIndex(q => q.id === state.teacherEditId);
+      const conflict = bank.some((q, index) => q.id.toLowerCase() === question.id.toLowerCase() && index !== existing);
+      if (conflict) { showToast("ID soal sudah digunakan. Pilih ID yang berbeda."); return; }
+      if (existing >= 0) bank[existing] = question; else bank.push(question);
+      saveBank(); clearQuestionForm(); showToast("Soal tersimpan di browser ini.");
+    }
+    function exportBank() {
+      try {
+        const blob = new Blob([JSON.stringify({ version: 1, questions: bank }, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a"); anchor.href = url; anchor.download = "spider-hero-bank-soal.json"; anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (error) { showToast("Ekspor JSON gagal pada browser ini."); }
+    }
+    async function importBankFile(file) {
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        const candidate = Array.isArray(parsed) ? parsed : parsed.questions;
+        const imported = normalizeBank(candidate);
+        if (!imported || !imported.length) { showToast("File JSON tidak valid. Pastikan setiap soal memiliki empat pilihan, kunci, pembahasan, dan sumber."); return; }
+        if (!confirm(`Ganti bank saat ini (${bank.length} soal) dengan ${imported.length} soal dari file?`)) return;
+        bank = imported; saveBank(); clearQuestionForm(); showToast("Bank soal berhasil diimpor.");
+      } catch (error) { showToast("File tidak dapat dibaca sebagai JSON yang valid."); }
+      finally { $("#importBankFile").value = ""; }
+    }
+    function restoreBank() {
+      if (!confirm("Pulihkan bank soal bawaan? Perubahan bank soal saat ini akan diganti.")) return;
+      bank = clone(DEFAULT_QUESTIONS); saveBank(); clearQuestionForm(); showToast("Bank soal bawaan telah dipulihkan.");
+    }
+    function saveTeacherSettings(event) {
+      event.preventDefault();
+      settings.durationMinutes = clamp(Number($("#settingDuration").value) || 7, 5, 10);
+      settings.questionsPerMission = clamp(Number($("#settingQuestionCount").value) || 4, 1, 5);
+      settings.attempts = clamp(Number($("#settingAttempts").value) || 2, 1, 3);
+      settings.cooldownMs = clamp(Number($("#settingCooldown").value) || 650, 500, 800);
+      settings.feedbackDelay = clamp(Number($("#settingFeedbackDelay").value) || 1, 1, 8);
+      settings.sensitivity = clamp(Number($("#settingSensitivity").value) || .55, .35, .85);
+      settings.control = $("#settingControl").value === "mouse" ? "mouse" : "hand";
+      settings.sound = $("#settingSound").checked;
+      saveSettings(); populateTeacherSettings();
+      $("#modalCooldown").value = String(settings.cooldownMs);
+      $("#modalSensitivity").value = settings.sensitivity;
+      $("#modalControl").value = settings.control;
+      $("#modalSound").checked = settings.sound;
+      $("#arenaMuteButton").querySelector("span").textContent = settings.sound ? "SFX" : "MUTE";
+      showToast("Pengaturan sesi berhasil disimpan.");
+    }
+    function clearHistory() {
+      if (!confirm("Hapus semua riwayat permainan yang tersimpan di browser ini?")) return;
+      gameHistory = [];
+      try { localStorage.removeItem(STORAGE.history); setStorageStatus("Riwayat permainan telah dihapus."); }
+      catch (error) { setStorageStatus("Riwayat tidak dapat dihapus karena penyimpanan browser tidak tersedia."); }
+      showToast("Riwayat permainan dihapus.");
+    }
+
+    function updateModalSensitivity() {
+      $("#modalSensitivityValue").textContent = `${Math.round(Number($("#modalSensitivity").value) * 100)}%`;
+    }
+    function saveModalSettings() {
+      settings.control = $("#modalControl").value === "mouse" ? "mouse" : "hand";
+      settings.sensitivity = clamp(Number($("#modalSensitivity").value) || .55, .35, .85);
+      settings.cooldownMs = clamp(Number($("#modalCooldown").value) || 650, 500, 800);
+      settings.sound = $("#modalSound").checked;
+      saveSettings();
+      populateTeacherSettings();
+      $("#arenaMuteButton").querySelector("span").textContent = settings.sound ? "SFX" : "MUTE";
+      closeModal("settingsModal");
+      showToast("Pengaturan disimpan.");
+    }
+    function openTeacherLogin() {
+      $("#teacherPin").value = "";
+      $("#pinError").textContent = "";
+      openModal("pinModal");
+    }
+    function handlePinSubmit(event) {
+      event.preventDefault();
+      // This client-side PIN is a convenience gate only; it is not security.
+      if ($("#teacherPin").value === "Inovatif") {
+        closeModal("pinModal");
+        showScreen("teacher");
+        renderBankList();
+        populateTeacherSettings();
+        clearQuestionForm();
+      } else {
+        $("#pinError").textContent = "PIN belum sesuai. Periksa huruf besar dan kecil.";
+        $("#teacherPin").select();
+      }
+    }
+
+    function canvasPoint(event) {
+      const rect = arenaCanvas.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    }
+    function onArenaPointerMove(event) {
+      const point = canvasPoint(event);
+      state.mousePointer = point;
+      const rect = arenaCanvas.getBoundingClientRect();
+      if (state.currentControl === "mouse") {
+        $("#gamePointerState").textContent = `${Math.round(point.x / rect.width * 100)}% x ${Math.round(point.y / rect.height * 100)}%`;
+      }
+    }
+    function onArenaPointerDown(event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+      const point = canvasPoint(event);
+      state.mousePointer = point;
+      arenaCanvas.focus({ preventScroll: true });
+      shootWeb(point.x, point.y, "mouse");
+    }
+    function handleKeydown(event) {
+      if (event.key === "Escape") {
+        if (state.screen === "arena") { event.preventDefault(); if (state.session?.paused) resumeGame(); else pauseGame(); }
+        return;
+      }
+      if (state.screen !== "arena" || event.target.matches("input,textarea,select,button")) return;
+      if (event.key.toLowerCase() === "r") { event.preventDefault(); restartCurrentMission(); return; }
+      if (event.code === "Space") {
+        event.preventDefault();
+        const w = arenaCanvas.clientWidth, h = arenaCanvas.clientHeight;
+        const point = state.currentControl === "hand" ? { x: state.pointer.x * w, y: state.pointer.y * h } : state.mousePointer;
+        shootWeb(point.x, point.y, "keyboard");
+        return;
+      }
+      if (/^[1-4]$/.test(event.key) && !state.questionLocked && !state.intermission) {
+        event.preventDefault();
+        const index = Number(event.key) - 1;
+        const rect = state.hitboxes[index];
+        if (rect) shootWeb(rect.x + rect.w / 2, rect.y + rect.h / 2, "keyboard");
+      }
+    }
+
+    function animationLoop(timestamp) {
+      const dt = state.lastFrameTime ? Math.min(50, timestamp - state.lastFrameTime) : 16;
+      state.lastFrameTime = timestamp;
+      if (state.screen === "home") renderHeroCanvas(timestamp);
+      if (state.screen === "arena") {
+        updateGame(dt);
+        renderArena(timestamp);
+      }
+      requestAnimationFrame(animationLoop);
+    }
+    function bindEvents() {
+      $$('[data-go]').forEach(button => button.addEventListener("click", () => showScreen(button.dataset.go)));
+      $$('[data-action="teacher-login"]').forEach(button => button.addEventListener("click", openTeacherLogin));
+      $("#headerSettings").addEventListener("click", openSettings);
+      $("#homeSettings").addEventListener("click", openSettings);
+      $("#startMissionButton").addEventListener("click", () => startGame());
+      $("#enableCameraButton").addEventListener("click", () => initCamera());
+      $("#retryCameraButton").addEventListener("click", () => initCamera());
+      $("#stopCameraButton").addEventListener("click", cleanupCamera);
+      $("#calibrateButton").addEventListener("click", startCalibration);
+      $("#guideBackButton").addEventListener("click", closeGuide);
+      $("#arenaHelpButton").addEventListener("click", openGuide);
+      $("#modalSensitivity").addEventListener("input", updateModalSensitivity);
+      $("#saveModalSettings").addEventListener("click", saveModalSettings);
+      $$("[data-close-modal]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.closeModal)));
+      $$(".modal-backdrop").forEach(modal => modal.addEventListener("click", event => { if (event.target === modal) closeModal(modal.id); }));
+      $("#pinForm").addEventListener("submit", handlePinSubmit);
+      $("#playerName").addEventListener("change", savePlayerName);
+      $("#playerName").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); savePlayerName(); $("#startMissionButton").focus(); } });
+      $("#arenaCanvas").addEventListener("pointermove", onArenaPointerMove);
+      $("#arenaCanvas").addEventListener("pointerdown", onArenaPointerDown);
+      $("#arenaCanvas").addEventListener("contextmenu", event => event.preventDefault());
+      $("#arenaCanvas").addEventListener("pointerleave", () => { if (state.currentControl === "mouse") $("#gamePointerState").textContent = "Mouse"; });
+      $("#pauseButton").addEventListener("click", pauseGame);
+      $("#resumeButton").addEventListener("click", resumeGame);
+      $("#retryMissionButton").addEventListener("click", restartCurrentMission);
+      $("#pauseRestartButton").addEventListener("click", restartCurrentMission);
+      $("#pauseExitButton").addEventListener("click", () => { if (confirm("Keluar dari misi? Progres sesi ini tidak dihitung sebagai hasil akhir.")) { $("#pauseOverlay").classList.remove("open"); state.session = null; cleanupCamera(); showScreen("home"); } });
+      $("#exitButton").addEventListener("click", () => { if (confirm("Keluar dari permainan? Progres sesi ini tidak disimpan sebagai hasil akhir.")) { state.session = null; cleanupCamera(); showScreen("home"); } });
+      $("#feedbackRetry").addEventListener("click", advanceAfterFeedback);
+      $("#feedbackNext").addEventListener("click", advanceAfterFeedback);
+      $("#controlToggle").addEventListener("click", toggleControl);
+      $("#arenaMuteButton").addEventListener("click", toggleSound);
+      $("#playAgainButton").addEventListener("click", () => startGame());
+      $("#reviewWrongButton").addEventListener("click", () => startGame({ onlyIds: state.lastFailedIds }));
+      $("#questionForm").addEventListener("submit", handleQuestionSave);
+      $("#clearQuestionForm").addEventListener("click", clearQuestionForm);
+      $("#newQuestionButton").addEventListener("click", () => { clearQuestionForm(); $("#teacherQuestionId").focus(); });
+      $("#teacherQuestionList").addEventListener("click", event => {
+        const editId = event.target.dataset.editQuestion;
+        const deleteId = event.target.dataset.deleteQuestion;
+        if (editId) { const question = bank.find(q => q.id === editId); if (question) fillQuestionForm(question); }
+        if (deleteId) {
+          const question = bank.find(q => q.id === deleteId);
+          if (question && confirm(`Hapus soal ${deleteId}?`)) { bank = bank.filter(q => q.id !== deleteId); saveBank(); if (state.teacherEditId === deleteId) clearQuestionForm(); showToast("Soal dihapus."); }
+        }
+      });
+      $("#exportBankButton").addEventListener("click", exportBank);
+      $("#importBankButton").addEventListener("click", () => $("#importBankFile").click());
+      $("#importBankFile").addEventListener("change", event => importBankFile(event.target.files[0]));
+      $("#restoreBankButton").addEventListener("click", restoreBank);
+      $("#teacherSettingsForm").addEventListener("submit", saveTeacherSettings);
+      $("#settingSensitivity").addEventListener("input", () => $("#sensitivityValue").textContent = `${Math.round(Number($("#settingSensitivity").value) * 100)}%`);
+      $("#clearHistoryButton").addEventListener("click", clearHistory);
+      window.addEventListener("keydown", handleKeydown);
+      window.addEventListener("resize", resizeCanvases);
+      window.addEventListener("beforeunload", cleanupCamera);
+    }
+
+    function initGame() {
+      initSettingsUI();
+      bindEvents();
+      renderBankList();
+      clearQuestionForm();
+      updateControlButton();
+      $("#arenaMuteButton").querySelector("span").textContent = settings.sound ? "SFX" : "MUTE";
+      resizeCanvases();
+      requestAnimationFrame(animationLoop);
+    }
+    document.addEventListener("DOMContentLoaded", initGame, { once: true });
+  </script>
+</body>
+</html>
